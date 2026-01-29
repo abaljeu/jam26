@@ -3,8 +3,10 @@
   internal class GameState
   {
     public static readonly World theWorld = new World();
-    public List<Mob> Mobs;
+
+    // things at locations in the world
     public Hydra hydra;
+    public List<Mob> Mobs;
     public List<Mask> masks;
 
   }

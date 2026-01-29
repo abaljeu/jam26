@@ -6,11 +6,24 @@ using System.Threading.Tasks;
 
 namespace mask
 {
-  public enum Property
+  public enum EFeature
   { 
     None = 0,
     SuppressMask,
-    TrapVision
+    TrapVision,
+    Life
+  }
+  public enum Style { FullMask, PartyHat, ColoredGlasses }
+  public record MaskFeature(EFeature e);
+  public record LifeGainFeature(int amount) : MaskFeature(EFeature.Life);
+  public record Mask(Color color, Style style,MaskFeature m);
+
+  public enum ETile
+  {
+    Space,
+    Rock,
+    Dirt,
+    Ladder
   }
   public enum LocationProperty
   {
@@ -23,17 +36,16 @@ namespace mask
 
   }
   public enum EnableFlag { EnabledBy, DisabledBy }
-  public record Block(string Name, Property AffectedBy, EnableFlag EnableMode);
-
-  public record Tile(Block sourceBlock);
   class GameObjects
   {
-    public Block TrapBlock { get => new Block("Trap", Property.TrapVision, EnableFlag.EnabledBy); }
+    public Block TrapBlock { get => new Block(ETile.Dirt,
+      EnableFlag.EnabledBy,
+      EFeature.TrapVision);
+    }
   }
   public record Mob(string Name, int Level, int X, int Y, int Health, int Attack, int Def);
 
   public record Head(Mask? mask);
   public record Hydra(Mob mob, Mask[] masks, Head[] heads);
   public record Item(int Level, int X, int Y, Mask? mask);
-  public record Mask(Property property);
 }
