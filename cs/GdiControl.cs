@@ -8,21 +8,26 @@ namespace mask
   // idea: class Tile.  draws itself and border, using bitmap image.  maybe applies mask filter, or maybe image does and we use it.
   public class GdiControl : Control
   {
+    Bitmap reference;
+    Bitmap native;
     
     public GdiControl()
     {
-      SetStyle(ControlStyles.AllPaintingInWmPaint
-        | ControlStyles.OptimizedDoubleBuffer
-        | ControlStyles.ResizeRedraw, true);
-      BackColor = Color.White;
+        reference = new Bitmap("D:\\repos\\jam26\\images\\Reference.png");
+        native = new Bitmap(320, 240);
     }
 
     protected override void OnPaint(PaintEventArgs e)
     {
-      base.OnPaint(e);
-      using var pen = new Pen(Color.Blue, 2);
-      var gr = e.Graphics;
-      gr.DrawRectangle(pen, new Rectangle(10, 10, Width-20, Height-20));
+        {
+            Graphics g = Graphics.FromImage(native);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+            g.DrawImageUnscaled(reference, 0, 0);
+        }
+
+        // Draw native to final target
+        e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+        e.Graphics.DrawImageUnscaled(native, 0, 0);
     }
 
   }

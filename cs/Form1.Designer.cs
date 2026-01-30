@@ -40,10 +40,6 @@
             gdiControl1.Size = new Size(800, 450);
             gdiControl1.TabIndex = 0;
             gdiControl1.Text = "gdiControl1";
-            gdiControl1.Paint += gdiControl1_Paint;
-            gdiControl1.MouseDown += gdiControl1_MouseDown;
-            gdiControl1.MouseMove += gdiControl1_MouseMove;
-            gdiControl1.MouseUp += gdiControl1_MouseUp;
             // 
             // Form1
             // 
