@@ -193,9 +193,9 @@ namespace mask
             string imagePath = dir;
 
 #if DEBUG
-            imagePath = dir + "\\..\\..\\..\\..\\";
+            imagePath = dir + "\\..\\..\\..\\..";
 #endif
-            imagePath += "images\\";
+            imagePath += "\\images\\";
 
             reference = new Bitmap(imagePath + "Reference.png");
             reference.SetResolution(96, 96);
@@ -217,7 +217,7 @@ namespace mask
 
             whiteBrush = new SolidBrush(Color.White);
 
-            gameTimer = new System.Timers.Timer(32.0f);
+            gameTimer = new System.Timers.Timer(17.0f);
             gameTimer.Elapsed += OnTick;
             gameTimer.Start();
         }
