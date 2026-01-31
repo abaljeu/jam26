@@ -4,7 +4,10 @@ namespace mask
 {
   public class Layer
   {
-    public Layer(int x, int y) { tiles = new Tile[x, y]; }
+    public int MapX { get; init; }
+      public int MapY { get; init; }
+    public Layer(int x, int y) { MapX = x; MapY = y;
+      tiles = new Tile[x, y]; }
     public Tile[,] tiles;
   }
   // Layer l = new ExampleLayer();

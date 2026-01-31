@@ -10,7 +10,7 @@ namespace mask
     public static Block Dirt() => new Block().Add(ETile.Dirt);
     public static Block Ladder() => new Block().Add(ETile.Ladder);
 
-    public Block Add(ETile e) { Stack.Add(e); return this; }
+    public Block Add(ETile e) { Stack.Add(new Tile(e)); return this; }
 
     internal void Clear()
     {
