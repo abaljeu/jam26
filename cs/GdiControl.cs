@@ -44,7 +44,7 @@ namespace mask
         int mouseX, mouseY;
         System.Timers.Timer gameTimer;
 
-        Layer floor;
+        ExampleLayer floor;
 
         public GdiControl()
         {
@@ -60,7 +60,7 @@ namespace mask
             textframe = 0;
             messageBoxString = "This is a test.";
 
-            floor = Layer.ExampleLayer();
+            floor = new ExampleLayer();
         }
 
         void DrawGameplay(Graphics g)
@@ -81,12 +81,12 @@ namespace mask
                     }
 
                     Tile thisTile = floor.tiles[xTile, yTile];
-                    ETile tileType = thisTile.sourceBlock;
+                    ETile tileType = thisTile.tileType;
 
                     int tileIndex = 0;
-                    if (tileType == ETile.Space)
+                    if (tileType == ETile.Snow)
                     {
-                        tileIndex = 1;
+                        tileIndex = 4;
                     }
                     else if (tileType == ETile.Rock)
                     {
@@ -99,6 +99,10 @@ namespace mask
                     else if (tileType == ETile.Ladder)
                     {
                         tileIndex = 3;
+                    }
+                    else if (tileType == ETile.Bridge)
+                    {
+                        tileIndex = 5;
                     }
 
 

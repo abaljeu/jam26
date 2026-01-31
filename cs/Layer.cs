@@ -5,7 +5,7 @@ namespace mask
   public class Layer
   {
     public Layer(int x, int y) { tiles = new Tile[x, y]; }
-    protected Tile[,] tiles;
+    public Tile[,] tiles;
   }
   // Layer l = new ExampleLayer();
   public class ExampleLayer : Layer
