@@ -8,6 +8,10 @@ namespace mask
       public int MapY { get; init; }
     public Layer(int x, int y) { MapX = x; MapY = y;
       tiles = new Tile[x, y]; }
+
+    public Layer(Level level) : this(level.X, level.Y)
+    {
+    }
     public Tile[,] tiles;
   }
   // Layer l = new ExampleLayer();
@@ -36,7 +40,20 @@ namespace mask
   }
 }
 
+// 
 public class WorldLayer : Layer
 {
-  public WorldLayer(World w, int level, HydraVision vision) : base(20, 20) { }
+  public WorldLayer(World w, int level, HydraVision vision) : base(w.Level(level))
+  {
+    Level lev = w.Level(level);
+    for (int i = 0; i < lev.X; i++)
+    {
+      for (int j = 0; j < lev.Y; j++)
+      {
+        ETile eTile = vision.Filter(lev.BlockAt(i, j));
+        tiles[i, j] = new Tile(eTile);
+      }
+    }
+
+  }
 }

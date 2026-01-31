@@ -21,6 +21,7 @@ namespace mask
 
   public enum ETile
   {
+    None=0,
     Snow,
     Rock,
     Dirt,
@@ -41,7 +42,8 @@ namespace mask
   public enum EnableFlag { EnabledBy, DisabledBy }
   class GameObjects
   {
-    public Block TrapBlock  { get => new Block(
+    public Block TrapBlock 
+    { get => new Block(
       EnableFlag.EnabledBy,
       EFeature.TrapVision).Add(ETile.Dirt);
     }
@@ -49,6 +51,8 @@ namespace mask
   public record Mob(string Name, int Level, int X, int Y, int Health, int Attack, int Def);
 
   public record Head(Mask? mask);
-  public record Hydra(Mob mob, Mask[] masks, Head[] heads);
+
+  // Egg state has 0 heads.
+  public record Hydra(Mob m, Mask[] masks, Head[] heads) : Mob(m);
   public record Item(int Level, int X, int Y, Mask? mask);
 }
