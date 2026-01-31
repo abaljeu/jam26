@@ -23,10 +23,10 @@ namespace mask
 
         bool imagesLoaded;
 
+        int playerAnimationFrame = 0;
         int scaleFactor = 3;
         int mouseX, mouseY;
-
-
+        System.Timers.Timer gameTimer;
 
         public GdiControl()
         {
@@ -57,7 +57,7 @@ namespace mask
                 int xTile = 1;
                 int yTile = 1;
                 Rectangle destRect = new Rectangle(xTile * t, yTile * t, t, t);
-                Rectangle sourceRect = new Rectangle(4 * t, 1 * t, t, t);
+                Rectangle sourceRect = new Rectangle((4 + playerAnimationFrame) * t, 1 * t, t, t);
                 g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
 
             }
@@ -155,6 +155,17 @@ namespace mask
 
             native = new Bitmap(320, 240);
             native.SetResolution(96, 96);
+
+            gameTimer = new System.Timers.Timer(320.0f);
+            gameTimer.Elapsed += GameTimer_Elapsed;
+            gameTimer.Start();
+        }
+
+        private void GameTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            playerAnimationFrame = (playerAnimationFrame + 1) % 2;
+
+            this.Invalidate();
         }
 
         protected override void OnPaint(PaintEventArgs e)
