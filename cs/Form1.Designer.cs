@@ -37,7 +37,7 @@
             gdiControl1.Dock = DockStyle.Fill;
             gdiControl1.Location = new Point(0, 0);
             gdiControl1.Name = "gdiControl1";
-            gdiControl1.Size = new Size(800, 450);
+            gdiControl1.Size = new Size(798, 454);
             gdiControl1.TabIndex = 0;
             gdiControl1.Text = "gdiControl1";
             // 
@@ -45,7 +45,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(798, 454);
             Controls.Add(gdiControl1);
             Name = "Form1";
             Text = "Escape from Montreal";

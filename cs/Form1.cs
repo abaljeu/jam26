@@ -9,6 +9,7 @@ namespace mask
         public Form1()
         {
             InitializeComponent();
+            WindowState = FormWindowState.Maximized;
         }
     }
 }
