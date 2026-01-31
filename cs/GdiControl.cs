@@ -14,6 +14,7 @@ namespace mask
 
         Bitmap reference;
         Bitmap pointer;
+        Bitmap uiflavor;
 
         Bitmap native;
 
@@ -49,6 +50,9 @@ namespace mask
                 pointer = new Bitmap("D:\\repos\\jam26\\images\\Pointer.png");
                 pointer.SetResolution(96, 96);
 
+                uiflavor = new Bitmap("D:\\repos\\jam26\\images\\UI.png");
+                uiflavor.SetResolution(96, 96);
+
                 native = new Bitmap(320, 240);
                 native.SetResolution(96, 96);
 
@@ -59,6 +63,9 @@ namespace mask
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 g.DrawImageUnscaled(reference, 0, 0, 320, 240);
+
+                // Draw the HUD
+                g.DrawImageUnscaled(uiflavor, 0, 0);
 
                 // Draw the mouse pointer
                 g.DrawImageUnscaled(pointer, mouseX, mouseY);
