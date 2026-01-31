@@ -26,11 +26,16 @@ namespace mask
         bool systemCursor;
 
         int playerWorldTileX;
+        int playerWorldTileY;
+        
         int playerAnimationFrame = 0;
-        int playerWalkFrame = 0;
+        int playerXWalkFrame = 0;
+        int playerYWalkFrame = 0;
+
         bool isWalkingRight;
         bool isWalkingLeft;
-
+        bool isWalkingUp;
+        bool isWalkingDown;
 
         int scaleFactor = 3;
         int mouseX, mouseY;
@@ -45,6 +50,7 @@ namespace mask
             systemCursor = true;
 
             playerWorldTileX = 1;
+            playerWorldTileY = 1;
         }
 
         void DrawGameplay(Graphics g)
@@ -66,8 +72,8 @@ namespace mask
             // Draw the player character
             {
                 int xTile = playerWorldTileX;
-                int yTile = 1;
-                Rectangle destRect = new Rectangle(xTile * t + playerWalkFrame, yTile * t, t, t);
+                int yTile = playerWorldTileY;
+                Rectangle destRect = new Rectangle(xTile * t + playerXWalkFrame, yTile * t + playerYWalkFrame, t, t);
 
                 Rectangle sourceRect = new Rectangle((4 + (playerAnimationFrame / 10)) * t, 1 * t, t, t);
                 g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
@@ -179,22 +185,42 @@ namespace mask
 
             if (isWalkingLeft)
             {
-                playerWalkFrame -= 2;
-                if (playerWalkFrame <= -16)
+                playerXWalkFrame -= 2;
+                if (playerXWalkFrame <= -16)
                 {
                     isWalkingLeft = false;
-                    playerWalkFrame = 0;
+                    playerXWalkFrame = 0;
                     playerWorldTileX--;
                 }
             }
             else if (isWalkingRight)
             {
-                playerWalkFrame += 2;
-                if (playerWalkFrame > 16)
+                playerXWalkFrame += 2;
+                if (playerXWalkFrame > 16)
                 {
                     isWalkingRight = false;
-                    playerWalkFrame = 0;
+                    playerXWalkFrame = 0;
                     playerWorldTileX++;
+                }
+            }
+            else if (isWalkingUp)
+            {
+                playerYWalkFrame -= 2;
+                if (playerYWalkFrame <= -16)
+                {
+                    isWalkingUp = false;
+                    playerYWalkFrame = 0;
+                    playerWorldTileY--;
+                }
+            }
+            else if (isWalkingDown)
+            {
+                playerYWalkFrame += 2;
+                if (playerYWalkFrame > 16)
+                {
+                    isWalkingDown = false;
+                    playerYWalkFrame = 0;
+                    playerWorldTileY++;
                 }
             }
 
@@ -289,6 +315,14 @@ namespace mask
             else if (e.KeyCode == Keys.Left)
             {
                 isWalkingLeft = true;
+            }
+            else if (e.KeyCode == Keys.Up)
+            {
+                isWalkingUp = true;
+            }
+            else if (e.KeyCode == Keys.Down)
+            {
+                isWalkingDown = true;
             }
         }
     }
