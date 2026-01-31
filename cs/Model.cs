@@ -16,14 +16,16 @@ namespace mask
   public enum Style { FullMask, PartyHat, ColoredGlasses }
   public record MaskFeature(EFeature e);
   public record LifeGainFeature(int amount) : MaskFeature(EFeature.Life);
-  public record Mask(Color color, Style style,MaskFeature m);
+  public record Mask(Color color, Style style,
+      ETile tileToggle, MaskFeature m);
 
   public enum ETile
   {
-    Space,
+    Snow,
     Rock,
     Dirt,
-    Ladder
+    Ladder,
+    Bridge
   }
   public enum LocationProperty
   {
@@ -38,9 +40,9 @@ namespace mask
   public enum EnableFlag { EnabledBy, DisabledBy }
   class GameObjects
   {
-    public Block TrapBlock { get => new Block(ETile.Dirt,
+    public Block TrapBlock  { get => new Block(
       EnableFlag.EnabledBy,
-      EFeature.TrapVision);
+      EFeature.TrapVision).Add(ETile.Dirt);
     }
   }
   public record Mob(string Name, int Level, int X, int Y, int Health, int Attack, int Def);
