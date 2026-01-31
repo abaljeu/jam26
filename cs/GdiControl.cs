@@ -119,7 +119,7 @@ namespace mask
                 int yTile = playerWorldTileY;
                 Rectangle destRect = new Rectangle(xTile * t + playerXWalkFrame, yTile * t + playerYWalkFrame, t, t);
 
-                Rectangle sourceRect = new Rectangle((4 + (playerAnimationFrame / 10)) * t, 1 * t, t, t);
+                Rectangle sourceRect = new Rectangle((4 + (playerAnimationFrame / 20)) * t, 1 * t, t, t);
                 g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
 
             }
@@ -224,7 +224,7 @@ namespace mask
 
         private void OnTick(object? sender, System.Timers.ElapsedEventArgs e)
         {
-            playerAnimationFrame = (playerAnimationFrame + 1) % 20;
+            playerAnimationFrame = (playerAnimationFrame + 1) % 40;
 
             if (isWalkingLeft)
             {
@@ -361,25 +361,30 @@ namespace mask
             this.Invalidate();
         }
 
-        protected override void OnKeyUp(KeyEventArgs e)
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyUp(e);
-            if (e.KeyCode == Keys.Right)
+            base.OnKeyDown(e);
+            if (e.KeyCode == Keys.D)
             {
                 isWalkingRight = true;
             }
-            else if (e.KeyCode == Keys.Left)
+            else if (e.KeyCode == Keys.A)
             {
                 isWalkingLeft = true;
             }
-            else if (e.KeyCode == Keys.Up)
+            else if (e.KeyCode == Keys.W)
             {
                 isWalkingUp = true;
             }
-            else if (e.KeyCode == Keys.Down)
+            else if (e.KeyCode == Keys.S)
             {
                 isWalkingDown = true;
             }
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
         }
     }
 }
