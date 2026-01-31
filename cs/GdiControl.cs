@@ -24,7 +24,14 @@ namespace mask
         bool imagesLoaded;
 
         bool systemCursor;
+
+        int playerWorldTileX;
         int playerAnimationFrame = 0;
+        int playerWalkFrame = 0;
+        bool isWalkingRight;
+        bool isWalkingLeft;
+
+
         int scaleFactor = 3;
         int mouseX, mouseY;
         System.Timers.Timer gameTimer;
@@ -36,6 +43,8 @@ namespace mask
             this.DoubleBuffered = true;
 
             systemCursor = true;
+
+            playerWorldTileX = 1;
         }
 
         void DrawGameplay(Graphics g)
@@ -56,10 +65,11 @@ namespace mask
 
             // Draw the player character
             {
-                int xTile = 1;
+                int xTile = playerWorldTileX;
                 int yTile = 1;
-                Rectangle destRect = new Rectangle(xTile * t, yTile * t, t, t);
-                Rectangle sourceRect = new Rectangle((4 + playerAnimationFrame) * t, 1 * t, t, t);
+                Rectangle destRect = new Rectangle(xTile * t + playerWalkFrame, yTile * t, t, t);
+
+                Rectangle sourceRect = new Rectangle((4 + (playerAnimationFrame / 10)) * t, 1 * t, t, t);
                 g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
 
             }
@@ -158,14 +168,35 @@ namespace mask
             native = new Bitmap(320, 240);
             native.SetResolution(96, 96);
 
-            gameTimer = new System.Timers.Timer(320.0f);
+            gameTimer = new System.Timers.Timer(32.0f);
             gameTimer.Elapsed += GameTimer_Elapsed;
             gameTimer.Start();
         }
 
         private void GameTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
-            playerAnimationFrame = (playerAnimationFrame + 1) % 2;
+            playerAnimationFrame = (playerAnimationFrame + 1) % 20;
+
+            if (isWalkingLeft)
+            {
+                playerWalkFrame -= 2;
+                if (playerWalkFrame <= -16)
+                {
+                    isWalkingLeft = false;
+                    playerWalkFrame = 0;
+                    playerWorldTileX--;
+                }
+            }
+            else if (isWalkingRight)
+            {
+                playerWalkFrame += 2;
+                if (playerWalkFrame > 16)
+                {
+                    isWalkingRight = false;
+                    playerWalkFrame = 0;
+                    playerWorldTileX++;
+                }
+            }
 
             this.Invalidate();
         }
@@ -253,7 +284,11 @@ namespace mask
             base.OnKeyUp(e);
             if (e.KeyCode == Keys.Right)
             {
-                // Move the character right
+                isWalkingRight = true;
+            }
+            else if (e.KeyCode == Keys.Left)
+            {
+                isWalkingLeft = true;
             }
         }
     }
