@@ -19,10 +19,17 @@ namespace mask
 
         bool imagesLoaded;
 
+        int scaleFactor = 3;
+        int mouseX, mouseY;
+
+
+
         public GdiControl()
         {
             debugFont = new Font("Arial", 16);
             debugBrush = new SolidBrush(Color.White);
+            this.DoubleBuffered = true;
+            Cursor.Hide();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -54,19 +61,24 @@ namespace mask
                 g.DrawImageUnscaled(reference, 0, 0, 320, 240);
 
                 // Draw the mouse pointer
-                g.DrawImageUnscaled(pointer, 24 + 50, 158);
+                g.DrawImageUnscaled(pointer, mouseX, mouseY);
 
             }
 
             // Draw native to final target with 3x scaling
-            int scaleFactor = 3;
             e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
             e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
             e.Graphics.Clear(Color.Black);
             e.Graphics.DrawImage(native, 0, 0, 320 * scaleFactor, 240 * scaleFactor);
-
         }
 
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            mouseX = e.X / scaleFactor;
+            mouseY = e.Y / scaleFactor;
+            this.Invalidate();
+        }
     }
 }
 
