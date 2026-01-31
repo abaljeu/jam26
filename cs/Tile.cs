@@ -1,6 +1,6 @@
 ﻿namespace mask
 {
-  public record Tile(ETile sourceBlock)
+  public record Tile(ETile tileType)
   {
     public string tileGraphic { get; set; }
     public bool walkable { get; set; }

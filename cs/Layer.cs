@@ -1,12 +1,24 @@
-﻿namespace mask
+﻿using mask;
+
+namespace mask
 {
   public class Layer
   {
-    private Tile[,] tiles;
-
-    public static Layer FromWorld(int level, Mask[] masks)
+    public Layer(int x, int y) { tiles = new Tile[x, y]; }
+    protected Tile[,] tiles;
+  }
+  // Layer l = new ExampleLayer();
+  public class ExampleLayer : Layer
+  {
+    public ExampleLayer() : base(20, 20)
     {
-      return new Layer();
+      for (int i = 0; i < 20; i++)
+      {
+        for (int j = 0; j < 20; j++)
+        {
+          tiles[i, j] = new Tile(PickTile(i, j));
+        }
+      }
     }
     public static ETile PickTile(int i, int j)
     {
@@ -16,20 +28,12 @@
         return ETile.Rock;
       if (Math.Abs(i + j) < 25)
         return ETile.Dirt;
-      return ETile.Space;
-    }
-    public static Layer ExampleLayer()
-    {
-      Layer lay = new Layer();
-      lay.tiles = new Tile[20, 20];
-      for (int i = 0; i < 20; i++)
-      {
-        for (int j = 0; j < 20; j++)
-        {
-          lay.tiles[i, j] = new Tile(PickTile(i, j));
-        }
-      }
-      return lay;
+      return ETile.Snow;
     }
   }
+}
+
+public class WorldLayer : Layer
+{
+  public WorldLayer(World w, int level, HydraVision vision) : base(20, 20) { }
 }
