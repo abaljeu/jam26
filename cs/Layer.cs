@@ -2,7 +2,7 @@
 {
   public class Layer
   {
-    private Tile[,] tiles;
+    public Tile[,] tiles;
 
     public static Layer FromWorld(int level, Mask[] masks)
     {

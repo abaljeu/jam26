@@ -44,6 +44,8 @@ namespace mask
         int mouseX, mouseY;
         System.Timers.Timer gameTimer;
 
+        Layer floor;
+
         public GdiControl()
         {
             debugFont = new Font("Arial", 16);
@@ -57,6 +59,8 @@ namespace mask
 
             textframe = 0;
             messageBoxString = "This is a test.";
+
+            floor = Layer.ExampleLayer();
         }
 
         void DrawGameplay(Graphics g)
@@ -67,7 +71,36 @@ namespace mask
             {
                 for (int xTile = 0; xTile <= 20; ++xTile)
                 {
-                    int tileIndex = 1;
+                    if (xTile >= 20)
+                    {
+                        continue; // Off map
+                    }
+                    if (yTile >= 20)
+                    {
+                        continue; // Off map
+                    }
+
+                    Tile thisTile = floor.tiles[xTile, yTile];
+                    ETile tileType = thisTile.sourceBlock;
+
+                    int tileIndex = 0;
+                    if (tileType == ETile.Space)
+                    {
+                        tileIndex = 1;
+                    }
+                    else if (tileType == ETile.Rock)
+                    {
+                        tileIndex = 0;
+                    }
+                    else if (tileType == ETile.Dirt)
+                    {
+                        tileIndex = 2;
+                    }
+                    else if (tileType == ETile.Ladder)
+                    {
+                        tileIndex = 3;
+                    }
+
 
                     Rectangle destRect = new Rectangle(xTile * t, yTile * t, t, t);
                     Rectangle sourceRect = new Rectangle(tileIndex * t, 0, t, t);
