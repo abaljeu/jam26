@@ -15,6 +15,7 @@ namespace mask
         Bitmap reference;
         Bitmap pointer;
         Bitmap uiflavor;
+        Bitmap glyphs;
 
         Bitmap native;
 
@@ -31,6 +32,71 @@ namespace mask
             debugBrush = new SolidBrush(Color.White);
             this.DoubleBuffered = true;
             Cursor.Hide();
+        }
+
+        void DrawMessageBoxText(Graphics g)
+        {
+            // Draw message box content
+            string text = "Hello, Hackforge!";
+
+            int dstX = 52;
+            int w = 8;
+            int h = 16;
+
+            for (int i=0; i<text.Length; ++i)
+            {
+                Rectangle destRect = new Rectangle(dstX, 197, w, h);
+
+                char glyph = text[i];
+
+                int srcX = -1;
+
+                if (glyph >= 'A' && glyph <= 'Z')
+                {
+                    srcX = (glyph - 65) * 8;
+                }
+                else if (glyph >= 'a' && glyph <= 'z')
+                {
+                    srcX = (glyph - 97 + 26) * 8;
+                }
+                else if (glyph == ',')
+                {
+                    srcX = 52 * 8;
+                }
+                else if (glyph == '.')
+                {
+                    srcX = 53 * 8;
+                }
+                else if (glyph == ':')
+                {
+                    srcX = 54 * 8;
+                }
+                else if (glyph == ';')
+                {
+                    srcX = 55 * 8;
+                }
+                else if (glyph == '\'')
+                {
+                    srcX = 56 * 8;
+                }
+                else if (glyph >= '0' && glyph <= '9')
+                {
+                    srcX = (glyph - 48 + 57) * 8;
+                }
+                else if (glyph == '!')
+                {
+                    srcX = 67 * 8;
+                }
+
+                if (srcX > 0)
+                {
+                    Rectangle sourceRect = new Rectangle(srcX, 0, w, h);
+
+                    g.DrawImage(glyphs, destRect, sourceRect, GraphicsUnit.Pixel);
+                }
+
+                dstX += w;
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -53,6 +119,9 @@ namespace mask
                 uiflavor = new Bitmap("D:\\repos\\jam26\\images\\UI.png");
                 uiflavor.SetResolution(96, 96);
 
+                glyphs = new Bitmap("D:\\repos\\jam26\\images\\glyphs8x16.png");
+                glyphs.SetResolution(96, 96);
+
                 native = new Bitmap(320, 240);
                 native.SetResolution(96, 96);
 
@@ -63,6 +132,8 @@ namespace mask
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 g.DrawImageUnscaled(reference, 0, 0, 320, 240);
+
+                DrawMessageBoxText(g);
 
                 // Draw the HUD
                 g.DrawImageUnscaled(uiflavor, 0, 0);
