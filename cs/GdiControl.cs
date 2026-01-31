@@ -294,13 +294,13 @@ namespace mask
 
                 DrawGameplay(g);
 
+                // Draw the HUD
+                g.DrawImageUnscaled(uiflavor, 0, 0);
+
                 if (messageBoxString.Length > 0)
                 {
                     DrawMessageBoxText(g);
                 }
-
-                // Draw the HUD
-                g.DrawImageUnscaled(uiflavor, 0, 0);
 
                 // Draw the mouse pointer
                 g.DrawImageUnscaled(pointer, mouseX, mouseY);
