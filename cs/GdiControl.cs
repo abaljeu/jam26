@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Reflection.Metadata.Ecma335;
 using System.Windows.Forms;
 
 //tremnonal
@@ -22,17 +23,62 @@ namespace mask
 
         bool imagesLoaded;
 
+        bool systemCursor;
+
+        int playerWorldTileX;
+        int playerWorldTileY;
+        
+        int playerAnimationFrame = 0;
+        int playerXWalkFrame = 0;
+        int playerYWalkFrame = 0;
+
+        bool isWalkingRight;
+        bool isWalkingLeft;
+        bool isWalkingUp;
+        bool isWalkingDown;
+
         int scaleFactor = 3;
         int mouseX, mouseY;
-
-
+        System.Timers.Timer gameTimer;
 
         public GdiControl()
         {
             debugFont = new Font("Arial", 16);
             debugBrush = new SolidBrush(Color.White);
             this.DoubleBuffered = true;
-            Cursor.Hide();
+
+            systemCursor = true;
+
+            playerWorldTileX = 1;
+            playerWorldTileY = 1;
+        }
+
+        void DrawGameplay(Graphics g)
+        {
+            int t = 16;
+
+            for (int yTile = 0; yTile <= 15; ++yTile)
+            {
+                for (int xTile = 0; xTile <= 20; ++xTile)
+                {
+                    int tileIndex = 1;
+
+                    Rectangle destRect = new Rectangle(xTile * t, yTile * t, t, t);
+                    Rectangle sourceRect = new Rectangle(tileIndex * t, 0, t, t);
+                    g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+                }
+            }
+
+            // Draw the player character
+            {
+                int xTile = playerWorldTileX;
+                int yTile = playerWorldTileY;
+                Rectangle destRect = new Rectangle(xTile * t + playerXWalkFrame, yTile * t + playerYWalkFrame, t, t);
+
+                Rectangle sourceRect = new Rectangle((4 + (playerAnimationFrame / 10)) * t, 1 * t, t, t);
+                g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+
+            }
         }
 
         void DrawMessageBoxText(Graphics g)
@@ -100,6 +146,87 @@ namespace mask
             }
         }
 
+        private void LoadImageAssets()
+        {
+            string dir = Directory.GetCurrentDirectory();
+            string imagePath = dir;
+
+#if DEBUG
+            imagePath = dir + "\\..\\..\\..\\..\\";
+#endif
+            imagePath += "images\\";
+
+            reference = new Bitmap(imagePath + "Reference.png");
+            reference.SetResolution(96, 96);
+
+            pointer = new Bitmap(imagePath + "Pointer.png");
+            pointer.SetResolution(96, 96);
+
+            uiflavor = new Bitmap(imagePath + "UI.png");
+            uiflavor.SetResolution(96, 96);
+
+            glyphs = new Bitmap(imagePath + "glyphs8x16.png");
+            glyphs.SetResolution(96, 96);
+
+            tileset = new Bitmap(imagePath + "Tileset.png");
+            tileset.SetResolution(96, 96);
+
+            native = new Bitmap(320, 240);
+            native.SetResolution(96, 96);
+
+            gameTimer = new System.Timers.Timer(32.0f);
+            gameTimer.Elapsed += GameTimer_Elapsed;
+            gameTimer.Start();
+        }
+
+        private void GameTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            playerAnimationFrame = (playerAnimationFrame + 1) % 20;
+
+            if (isWalkingLeft)
+            {
+                playerXWalkFrame -= 2;
+                if (playerXWalkFrame <= -16)
+                {
+                    isWalkingLeft = false;
+                    playerXWalkFrame = 0;
+                    playerWorldTileX--;
+                }
+            }
+            else if (isWalkingRight)
+            {
+                playerXWalkFrame += 2;
+                if (playerXWalkFrame > 16)
+                {
+                    isWalkingRight = false;
+                    playerXWalkFrame = 0;
+                    playerWorldTileX++;
+                }
+            }
+            else if (isWalkingUp)
+            {
+                playerYWalkFrame -= 2;
+                if (playerYWalkFrame <= -16)
+                {
+                    isWalkingUp = false;
+                    playerYWalkFrame = 0;
+                    playerWorldTileY--;
+                }
+            }
+            else if (isWalkingDown)
+            {
+                playerYWalkFrame += 2;
+                if (playerYWalkFrame > 16)
+                {
+                    isWalkingDown = false;
+                    playerYWalkFrame = 0;
+                    playerWorldTileY++;
+                }
+            }
+
+            this.Invalidate();
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             if (this.DesignMode)
@@ -111,39 +238,17 @@ namespace mask
 
             if (!imagesLoaded)
             {
-                string dir = Directory.GetCurrentDirectory();
-                string imagePath = dir;
-
-#if DEBUG
-                imagePath = dir + "\\..\\..\\..\\..\\";
-#endif
-                imagePath += "images\\";
-
-                reference = new Bitmap(imagePath + "Reference.png");
-                reference.SetResolution(96, 96);
-
-                pointer = new Bitmap(imagePath + "Pointer.png");
-                pointer.SetResolution(96, 96);
-
-                uiflavor = new Bitmap(imagePath + "UI.png");
-                uiflavor.SetResolution(96, 96);
-
-                glyphs = new Bitmap(imagePath + "glyphs8x16.png");
-                glyphs.SetResolution(96, 96);
-
-                tileset = new Bitmap(imagePath + "Tileset.png");
-                tileset.SetResolution(96, 96);
-
-                native = new Bitmap(320, 240);
-                native.SetResolution(96, 96);
-
+                LoadImageAssets();
                 imagesLoaded = true;
             }
+
             {
                 Graphics g = Graphics.FromImage(native);
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 g.DrawImageUnscaled(reference, 0, 0, 320, 240);
+
+                DrawGameplay(g);
 
                 DrawMessageBoxText(g);
 
@@ -152,7 +257,6 @@ namespace mask
 
                 // Draw the mouse pointer
                 g.DrawImageUnscaled(pointer, mouseX, mouseY);
-
             }
 
             // Draw native to final target with 3x scaling
@@ -165,9 +269,61 @@ namespace mask
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            mouseX = e.X / scaleFactor;
-            mouseY = e.Y / scaleFactor;
+
+            bool systemCursorNext = false;
+
+            if (e.X > 320 * scaleFactor)
+            {
+                systemCursorNext = true;
+            }
+
+            if (e.Y > 240 * scaleFactor)
+            {
+                systemCursorNext = true;
+            }
+
+            if (!systemCursorNext)
+            {
+                mouseX = e.X / scaleFactor;
+                mouseY = e.Y / scaleFactor;
+            }
+
+            if (systemCursor != systemCursorNext)
+            {
+                systemCursor = systemCursorNext;
+
+                if (systemCursor)
+                {
+                    Cursor.Show();
+                }
+                else
+                {
+                    Cursor.Hide();
+                }
+            }
+
             this.Invalidate();
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+            if (e.KeyCode == Keys.Right)
+            {
+                isWalkingRight = true;
+            }
+            else if (e.KeyCode == Keys.Left)
+            {
+                isWalkingLeft = true;
+            }
+            else if (e.KeyCode == Keys.Up)
+            {
+                isWalkingUp = true;
+            }
+            else if (e.KeyCode == Keys.Down)
+            {
+                isWalkingDown = true;
+            }
         }
     }
 }
