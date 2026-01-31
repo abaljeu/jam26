@@ -14,19 +14,29 @@
         }
       }
     }
+    public void AddRange(ETile type, int x0, int y0, int w , int h )
+    {
+      for (int i = 0; i <= X; i++)
+      {
+        if (i == w)
+          return;
+        for (int j = 0; j <= Y; j++)
+        {
+          if (j == h)
+            return;
+          int x = x0 + i;
+          int y = y0 + j;
+          Blocks[x, y].Add(type);
+        }
+      }
+    }
   }
   public class BasementLevel : Level
   {
     public BasementLevel() : base()
     {
       Blocks[18, 18].Add(ETile.Ladder);
-      for (int i = 0; i < X; i++)
-      {
-        for (int j = 0; j < Y; j++)
-        {
-          Blocks[i, j].Add(ETile.Snow);
-        }
-      }
+      AddRange(ETile.Snow, 0, 0, X, Y);
     }
   }
 
@@ -34,14 +44,14 @@
   {
     public StartingLevel() : base()
     {
-      Blocks[18, 18].Add(ETile.Ladder);
-      for (int i = 0; i < X; i++)
-      {
-        for (int j = 0; j < Y; j++)
-        {
-          Blocks[i, j].Add(ETile.Snow);
-        }
-      }
+      AddRange(ETile.Dirt, 0, 0, 5, 5);
+      AddRange(ETile.Bridge, 5, 3, 4, 2);
+      AddRange(ETile.Rock, 9, 0, 20, 20);
+      AddRange(ETile.Rock, 0,9, 20, 20);
+      Blocks[12, 16].Add(ETile.Ladder);
+
+      Blocks[18, 18].Clear();
+      Blocks[18, 18].Add(ETile.FloorLadder);
     }
   }
 

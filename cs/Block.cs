@@ -1,27 +1,23 @@
-﻿namespace mask
+﻿
+namespace mask
 {
   public record Block(EnableFlag EnableMode = EnableFlag.EnabledBy,
     EFeature Feature = EFeature.None)
   {
-    List<ETile> Tiles = [];
-    public static TileStack Stack { get; } = new TileStack();
+    public static List<Tile> Stack { get; } = new List<Tile>();
     public static Block Snow() => new Block().Add(ETile.Snow);
     public static Block Rock() => new Block().Add(ETile.Rock);
     public static Block Dirt() => new Block().Add(ETile.Dirt);
     public static Block Ladder() => new Block().Add(ETile.Ladder);
 
-    public Block Add(ETile e) { Tiles.Add(e); return this; }
-  }
+    public Block Add(ETile e) { Stack.Add(e); return this; }
 
-  public class TileStack : List<ETile>
-  {
-    public TileStack() { }
-    public TileStack Add(ETile t)
+    internal void Clear()
     {
-      base.Add(t);
-      return this;
+      Stack.Clear();
     }
   }
+
 
 
   public record HydraVision(Hydra h)

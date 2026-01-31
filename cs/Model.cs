@@ -25,6 +25,7 @@ namespace mask
     Rock,
     Dirt,
     Ladder,
+    FloorLadder,
     Bridge
   }
   public enum LocationProperty
