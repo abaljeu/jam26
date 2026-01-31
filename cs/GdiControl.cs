@@ -16,6 +16,7 @@ namespace mask
         Bitmap pointer;
         Bitmap uiflavor;
         Bitmap glyphs;
+        Bitmap tileset;
 
         Bitmap native;
 
@@ -110,17 +111,28 @@ namespace mask
 
             if (!imagesLoaded)
             {
-                reference = new Bitmap("D:\\repos\\jam26\\images\\Reference.png");
+                string dir = Directory.GetCurrentDirectory();
+                string imagePath = dir;
+
+#if DEBUG
+                imagePath = dir + "\\..\\..\\..\\..\\";
+#endif
+                imagePath += "images\\";
+
+                reference = new Bitmap(imagePath + "Reference.png");
                 reference.SetResolution(96, 96);
 
-                pointer = new Bitmap("D:\\repos\\jam26\\images\\Pointer.png");
+                pointer = new Bitmap(imagePath + "Pointer.png");
                 pointer.SetResolution(96, 96);
 
-                uiflavor = new Bitmap("D:\\repos\\jam26\\images\\UI.png");
+                uiflavor = new Bitmap(imagePath + "UI.png");
                 uiflavor.SetResolution(96, 96);
 
-                glyphs = new Bitmap("D:\\repos\\jam26\\images\\glyphs8x16.png");
+                glyphs = new Bitmap(imagePath + "glyphs8x16.png");
                 glyphs.SetResolution(96, 96);
+
+                tileset = new Bitmap(imagePath + "Tileset.png");
+                tileset.SetResolution(96, 96);
 
                 native = new Bitmap(320, 240);
                 native.SetResolution(96, 96);
