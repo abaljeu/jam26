@@ -18,10 +18,11 @@ namespace mask
         Bitmap uiflavor;
         Bitmap glyphs;
         Bitmap tileset;
+        Brush whiteBrush;
 
         Bitmap native;
 
-        bool imagesLoaded;
+        bool gameplayAssetsLoaded;
 
         bool systemCursor;
 
@@ -71,11 +72,11 @@ namespace mask
             {
                 for (int xTile = 0; xTile <= 20; ++xTile)
                 {
-                    if (xTile >= 20)
+                    if (xTile >= floor.MapX)
                     {
                         continue; // Off map
                     }
-                    if (yTile >= 20)
+                    if (yTile >= floor.MapY)
                     {
                         continue; // Off map
                     }
@@ -186,7 +187,7 @@ namespace mask
             }
         }
 
-        private void LoadImageAssets()
+        private void LoadGameplayAssets()
         {
             string dir = Directory.GetCurrentDirectory();
             string imagePath = dir;
@@ -213,6 +214,8 @@ namespace mask
 
             native = new Bitmap(320, 240);
             native.SetResolution(96, 96);
+
+            whiteBrush = new SolidBrush(Color.White);
 
             gameTimer = new System.Timers.Timer(32.0f);
             gameTimer.Elapsed += OnTick;
@@ -280,10 +283,10 @@ namespace mask
                 return;
             }
 
-            if (!imagesLoaded)
+            if (!gameplayAssetsLoaded)
             {
-                LoadImageAssets();
-                imagesLoaded = true;
+                LoadGameplayAssets();
+                gameplayAssetsLoaded = true;
             }
 
             {
@@ -294,13 +297,19 @@ namespace mask
 
                 DrawGameplay(g);
 
+                // Draw the HUD
+                g.DrawImageUnscaled(uiflavor, 0, 0);
+
+                // Draw the health bar
+                g.FillRectangle(whiteBrush, 268, 193, 5, 4); // Fills 0..39
+
+                // Draw the XP bar
+                g.FillRectangle(whiteBrush, 268, 202, 20, 4); // Fills 0..39
+
                 if (messageBoxString.Length > 0)
                 {
                     DrawMessageBoxText(g);
                 }
-
-                // Draw the HUD
-                g.DrawImageUnscaled(uiflavor, 0, 0);
 
                 // Draw the mouse pointer
                 g.DrawImageUnscaled(pointer, mouseX, mouseY);
