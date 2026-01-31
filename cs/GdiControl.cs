@@ -32,6 +32,9 @@ namespace mask
         int playerXWalkFrame = 0;
         int playerYWalkFrame = 0;
 
+        int textframe;
+        string messageBoxString;
+
         bool isWalkingRight;
         bool isWalkingLeft;
         bool isWalkingUp;
@@ -51,6 +54,9 @@ namespace mask
 
             playerWorldTileX = 1;
             playerWorldTileY = 1;
+
+            textframe = 0;
+            messageBoxString = "This is a test.";
         }
 
         void DrawGameplay(Graphics g)
@@ -83,18 +89,15 @@ namespace mask
 
         void DrawMessageBoxText(Graphics g)
         {
-            // Draw message box content
-            string text = "Hello, Hackforge!";
-
             int dstX = 52;
             int w = 8;
             int h = 16;
 
-            for (int i=0; i<text.Length; ++i)
+            for (int i=0; i<textframe; ++i)
             {
                 Rectangle destRect = new Rectangle(dstX, 197, w, h);
 
-                char glyph = text[i];
+                char glyph = messageBoxString[i];
 
                 int srcX = -1;
 
@@ -175,11 +178,11 @@ namespace mask
             native.SetResolution(96, 96);
 
             gameTimer = new System.Timers.Timer(32.0f);
-            gameTimer.Elapsed += GameTimer_Elapsed;
+            gameTimer.Elapsed += OnTick;
             gameTimer.Start();
         }
 
-        private void GameTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        private void OnTick(object? sender, System.Timers.ElapsedEventArgs e)
         {
             playerAnimationFrame = (playerAnimationFrame + 1) % 20;
 
@@ -223,6 +226,10 @@ namespace mask
                     playerWorldTileY++;
                 }
             }
+            if (messageBoxString.Length > 0 && textframe < messageBoxString.Length)
+            {
+                textframe++;
+            }
 
             this.Invalidate();
         }
@@ -250,7 +257,10 @@ namespace mask
 
                 DrawGameplay(g);
 
-                DrawMessageBoxText(g);
+                if (messageBoxString.Length > 0)
+                {
+                    DrawMessageBoxText(g);
+                }
 
                 // Draw the HUD
                 g.DrawImageUnscaled(uiflavor, 0, 0);
