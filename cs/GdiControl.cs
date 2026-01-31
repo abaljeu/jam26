@@ -71,11 +71,11 @@ namespace mask
             {
                 for (int xTile = 0; xTile <= 20; ++xTile)
                 {
-                    if (xTile >= 20)
+                    if (xTile >= floor.MapX)
                     {
                         continue; // Off map
                     }
-                    if (yTile >= 20)
+                    if (yTile >= floor.MapY)
                     {
                         continue; // Off map
                     }
