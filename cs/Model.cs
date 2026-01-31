@@ -71,6 +71,13 @@ namespace mask
   public record Head(Mask? mask);
 
   // Egg state has 0 heads.
-  public record Hydra(Mob m, Mask[] masks, Head[] heads) : Mob(m);
+  public record Hydra(Mob m, Mask[] masks, Head[] heads) : Mob(m)
+  {
+    public IEnumerable<Mask> EquippedMasks
+    {
+      get => heads.Select(h => h.mask);
+    }
+  }
+
   public record Item(int Level, int X, int Y, Mask? mask);
 }

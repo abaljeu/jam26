@@ -42,7 +42,7 @@ namespace mask
     }
     public bool Sees(Tile t)
     {
-      foreach (var m in h.masks)
+      foreach (var m in h.EquippedMasks)
       {
         if (m.tileToggle == t.tileType)
           return !DefaultSees(t.tileType);
