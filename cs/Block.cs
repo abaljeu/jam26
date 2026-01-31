@@ -11,7 +11,11 @@ namespace mask
     public static Block Dirt() => new Block().Add(ETile.Dirt);
     public static Block Ladder() => new Block().Add(ETile.Ladder);
 
-    public Block Add(ETile e) { TileStack.Add(new Tile(e)); return this; }
+    public Block Add(ETile e) 
+    {
+      // never add ETile.None.  That value is for TileNotFound.
+      TileStack.Add(new Tile(e)); return this; 
+    }
 
     internal void Clear()
     {

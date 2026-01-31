@@ -2,20 +2,15 @@
 
 namespace mask
 {
-  public class Layer
+  public record Layer(int MapX, int MapY)
   {
-    public int MapX { get; init; }
-      public int MapY { get; init; }
-    public Layer(int x, int y) { MapX = x; MapY = y;
-      tiles = new Tile[x, y]; }
-
     public Layer(Level level) : this(level.X, level.Y)
     {
     }
-    public Tile[,] tiles;
+    public Tile[,] tiles = new Tile[MapX, MapY];
   }
   // Layer l = new ExampleLayer();
-  public class ExampleLayer : Layer
+  public record ExampleLayer : Layer
   {
     public ExampleLayer() : base(20, 20)
     {
@@ -41,7 +36,7 @@ namespace mask
 }
 
 // 
-public class WorldLayer : Layer
+public record WorldLayer : Layer
 {
   public WorldLayer(World w, int level, HydraVision vision) : base(w.Level(level))
   {
@@ -54,6 +49,5 @@ public class WorldLayer : Layer
         tiles[i, j] = new Tile(eTile);
       }
     }
-
   }
 }

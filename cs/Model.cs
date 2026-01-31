@@ -13,13 +13,23 @@ namespace mask
     TrapVision,
     Life
   }
-  public enum Style { FullMask, PartyHat, ColoredGlasses }
-  public record MaskFeature(EFeature e);
+  public enum Style : int { FullMask, PartyHat, ColoredGlasses }
+  public record MaskFeature(EFeature e)
+  {
+    public static MaskFeature None { get => new (EFeature.None); }
+  }
   public record LifeGainFeature(int amount) : MaskFeature(EFeature.Life);
-  public record Mask(Color color, Style style,
-      ETile tileToggle, MaskFeature m);
+  public record Mask(
+      ETile tileToggle, MaskFeature m)
+  {
+    Style style = Rand.GetRandomEnumValue<Style>();
+    Color color = Color.FromArgb(
+      Rand.Value(0,255), 
+      Rand.Value(0,255), 
+      Rand.Value(0,255));
+  }
 
-  public enum ETile
+  public enum ETile : int
   {
     None=0,
     Snow,
@@ -27,7 +37,15 @@ namespace mask
     Dirt,
     Ladder,
     FloorLadder,
-    Bridge
+    Bridge,
+    Wall
+  }
+  public enum EMob
+  { 
+    None = 0,
+    Hydra,
+    Slime,
+    Hero
   }
   public enum LocationProperty
   {
@@ -48,7 +66,7 @@ namespace mask
       EFeature.TrapVision).Add(ETile.Dirt);
     }
   }
-  public record Mob(string Name, int Level, int X, int Y, int Health, int Attack, int Def);
+  public record Mob(EMob type, int Level, int X, int Y, int Health, int Attack, int Def);
 
   public record Head(Mask? mask);
 
