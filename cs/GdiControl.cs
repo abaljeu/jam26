@@ -23,6 +23,7 @@ namespace mask
 
         bool imagesLoaded;
 
+        bool systemCursor;
         int playerAnimationFrame = 0;
         int scaleFactor = 3;
         int mouseX, mouseY;
@@ -33,7 +34,8 @@ namespace mask
             debugFont = new Font("Arial", 16);
             debugBrush = new SolidBrush(Color.White);
             this.DoubleBuffered = true;
-            Cursor.Hide();
+
+            systemCursor = true;
         }
 
         void DrawGameplay(Graphics g)
@@ -210,9 +212,49 @@ namespace mask
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            mouseX = e.X / scaleFactor;
-            mouseY = e.Y / scaleFactor;
+
+            bool systemCursorNext = false;
+
+            if (e.X > 320 * scaleFactor)
+            {
+                systemCursorNext = true;
+            }
+
+            if (e.Y > 240 * scaleFactor)
+            {
+                systemCursorNext = true;
+            }
+
+            if (!systemCursorNext)
+            {
+                mouseX = e.X / scaleFactor;
+                mouseY = e.Y / scaleFactor;
+            }
+
+            if (systemCursor != systemCursorNext)
+            {
+                systemCursor = systemCursorNext;
+
+                if (systemCursor)
+                {
+                    Cursor.Show();
+                }
+                else
+                {
+                    Cursor.Hide();
+                }
+            }
+
             this.Invalidate();
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+            if (e.KeyCode == Keys.Right)
+            {
+                // Move the character right
+            }
         }
     }
 }
