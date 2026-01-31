@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Reflection.Metadata.Ecma335;
 using System.Windows.Forms;
 
 //tremnonal
@@ -33,6 +34,33 @@ namespace mask
             debugBrush = new SolidBrush(Color.White);
             this.DoubleBuffered = true;
             Cursor.Hide();
+        }
+
+        void DrawGameplay(Graphics g)
+        {
+            int t = 16;
+
+            for (int yTile = 0; yTile <= 15; ++yTile)
+            {
+                for (int xTile = 0; xTile <= 20; ++xTile)
+                {
+                    int tileIndex = 1;
+
+                    Rectangle destRect = new Rectangle(xTile * t, yTile * t, t, t);
+                    Rectangle sourceRect = new Rectangle(tileIndex * t, 0, t, t);
+                    g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+                }
+            }
+
+            // Draw the player character
+            {
+                int xTile = 1;
+                int yTile = 1;
+                Rectangle destRect = new Rectangle(xTile * t, yTile * t, t, t);
+                Rectangle sourceRect = new Rectangle(4 * t, 1 * t, t, t);
+                g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+
+            }
         }
 
         void DrawMessageBoxText(Graphics g)
@@ -100,6 +128,35 @@ namespace mask
             }
         }
 
+        private void LoadImageAssets()
+        {
+            string dir = Directory.GetCurrentDirectory();
+            string imagePath = dir;
+
+#if DEBUG
+            imagePath = dir + "\\..\\..\\..\\..\\";
+#endif
+            imagePath += "images\\";
+
+            reference = new Bitmap(imagePath + "Reference.png");
+            reference.SetResolution(96, 96);
+
+            pointer = new Bitmap(imagePath + "Pointer.png");
+            pointer.SetResolution(96, 96);
+
+            uiflavor = new Bitmap(imagePath + "UI.png");
+            uiflavor.SetResolution(96, 96);
+
+            glyphs = new Bitmap(imagePath + "glyphs8x16.png");
+            glyphs.SetResolution(96, 96);
+
+            tileset = new Bitmap(imagePath + "Tileset.png");
+            tileset.SetResolution(96, 96);
+
+            native = new Bitmap(320, 240);
+            native.SetResolution(96, 96);
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             if (this.DesignMode)
@@ -111,39 +168,17 @@ namespace mask
 
             if (!imagesLoaded)
             {
-                string dir = Directory.GetCurrentDirectory();
-                string imagePath = dir;
-
-#if DEBUG
-                imagePath = dir + "\\..\\..\\..\\..\\";
-#endif
-                imagePath += "images\\";
-
-                reference = new Bitmap(imagePath + "Reference.png");
-                reference.SetResolution(96, 96);
-
-                pointer = new Bitmap(imagePath + "Pointer.png");
-                pointer.SetResolution(96, 96);
-
-                uiflavor = new Bitmap(imagePath + "UI.png");
-                uiflavor.SetResolution(96, 96);
-
-                glyphs = new Bitmap(imagePath + "glyphs8x16.png");
-                glyphs.SetResolution(96, 96);
-
-                tileset = new Bitmap(imagePath + "Tileset.png");
-                tileset.SetResolution(96, 96);
-
-                native = new Bitmap(320, 240);
-                native.SetResolution(96, 96);
-
+                LoadImageAssets();
                 imagesLoaded = true;
             }
+
             {
                 Graphics g = Graphics.FromImage(native);
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 g.DrawImageUnscaled(reference, 0, 0, 320, 240);
+
+                DrawGameplay(g);
 
                 DrawMessageBoxText(g);
 
@@ -152,7 +187,6 @@ namespace mask
 
                 // Draw the mouse pointer
                 g.DrawImageUnscaled(pointer, mouseX, mouseY);
-
             }
 
             // Draw native to final target with 3x scaling
