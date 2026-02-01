@@ -729,6 +729,9 @@ namespace mask
         {
             game.Reset();
             InitializeGameplay();
+
+            floor = game.CurrentLayer;
+            floor.ConsoleWrite();
         }
 
         public enum Op
