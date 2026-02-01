@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Media;
 using System.Reflection.Metadata.Ecma335;
 using System.Windows.Forms;
 
@@ -723,6 +724,8 @@ namespace mask
             messageBoxString = "Monty must escape!";
             game.hydra.HP = 10;
             game.hydra.CurrentlyWornMask = null;
+
+            Music.startBackgroundMusic();
         }
 
         void ResetGame()
