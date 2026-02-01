@@ -447,6 +447,8 @@ namespace mask
                         textframe = 0;
                         messageBoxString = "Monty ran out of\nstrength.";
                         CurrentPrimaryState = PrimaryState.GameOverPending;
+                        floor.DespawnLadder();
+                        floor.DespawnExit();
                     }
                     else
                     {
@@ -517,6 +519,8 @@ namespace mask
                     textframe = 0;
                     messageBoxString = "Monty successfully\nescaped!";
                     CurrentPrimaryState = PrimaryState.YouWinPending;
+                    floor.DespawnLadder();
+                    floor.DespawnExit();
                 }
             }
             ticking = false;
