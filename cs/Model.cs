@@ -19,6 +19,9 @@ namespace mask
     public static MaskFeature None { get => new (EFeature.None); }
   }
   public record LifeGainFeature(int amount) : MaskFeature(EFeature.Life);
+    public record MaskOnGround(Mask mask, int Level, int X, int Y)
+    { 
+    }
   public record Mask(
       ETile tileToggle, MaskFeature m)
   {
@@ -45,7 +48,9 @@ namespace mask
     None = 0,
     Hydra,
     Slime,
-    Hero
+    Hero,
+    Skeleton,
+    Ghost,
   }
   public enum LocationProperty
   {

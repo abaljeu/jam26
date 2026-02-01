@@ -18,7 +18,7 @@
       }
     }
     public List<Mob> InitialMobs = new List<Mob>();
-    public List<Mask> InitialItems = new List<Mask>();
+    public List<MaskOnGround> InitialItems = new List<MaskOnGround>();
         public void AddRange(ETile type, int x0, int y0, int w, int h)
         {
             for (int i = 0; x0 + i < X; i++)
@@ -66,10 +66,14 @@
       Blocks[13, 13].Clear();
       Blocks[13, 13].Add(ETile.FloorLadder);
 
-      InitialMobs.Add(GameState.hydra);
-      InitialMobs.Add(new Mob(EMob.Slime, 1,/*x,y*/ 12, 12, 1, 1, 1));
+      InitialMobs.Add(GameState.theGame.hydra);
 
-      InitialItems.Add(new Mask(ETile.Bridge, MaskFeature.None));
+            for (int i = 10; i< 16; i+=2)
+                for (int j=8; j<15; j+=2)
+                    InitialMobs.Add(new Mob(EMob.Slime, 1,/*x,y*/ i,j, 1, 1, 1));
+
+            InitialItems.Add(
+                new MaskOnGround(new Mask(ETile.Bridge, MaskFeature.None), 1, 1, 1));
     }
   }
 
@@ -123,7 +127,7 @@
         }
       }
     }
-    public IEnumerable<Mask> InitialItems
+    public IEnumerable<MaskOnGround> InitialItems
     {
       get
       {
@@ -131,7 +135,7 @@
         {
           if (l != null)
           {
-            foreach (Mask mask in l.InitialItems)
+            foreach (MaskOnGround mask in l.InitialItems)
               yield return mask;
           }
         }

@@ -114,28 +114,54 @@ namespace mask
                     g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
                 }
             }
+
             DrawMobs(g);
+            DrawItems(g);
         }
 
+        int mobFrame(EMob e)
+        {
+            switch (e)
+            {
+                case EMob.None:
+                    return 0;
+                case EMob.Hydra:
+                    return 4 + playerAnimationFrame / 20;
+                case EMob.Slime:
+                    return 6;
+                case EMob.Skeleton:
+                    return 7;
+                case EMob.Ghost:
+                    return 8;
+                default:
+                    return 0;
+            }
+        }
+        int itemFrame()
+        {
+            return 12; // mask item
+        }
         void DrawMobs(Graphics g)
         {
-            // Draw the player character
-            //{
-            //    int xTile = playerWorldTileX;
-            //    int yTile = playerWorldTileY;
-            //    Rectangle destRect = new Rectangle(xTile * t + playerXWalkFrame, yTile * t + playerYWalkFrame, t, t);
-
-            //    Rectangle sourceRect = new Rectangle((4 + (playerAnimationFrame / 20)) * t, 1 * t, t, t);
-            //    g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
-
-            //}
             foreach (var mob in GameState.theGame.LayerMobs())
             {
                 int xTile = playerWorldTileX;
                 int yTile = playerWorldTileY;
-                Rectangle destRect = new Rectangle(xTile * t + mob.X, yTile * t + mob.Y, t, t);
+                Rectangle destRect = new Rectangle(mob.X * (t + 1), mob.Y * (t + 1), t, t);
 
-                Rectangle sourceRect = new Rectangle((4 + (playerAnimationFrame / 20)) * t, 1 * t, t, t);
+                Rectangle sourceRect = new Rectangle((mobFrame(mob.type)) * t, 1 * t, t, t);
+                g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+            }
+        }
+        void DrawItems(Graphics g)
+        {
+            foreach (var item in GameState.theGame.Items)
+            {
+                int xTile = playerWorldTileX;
+                int yTile = playerWorldTileY;
+                Rectangle destRect = new Rectangle(item.X * (t + 1), item.Y * (t + 1), t, t);
+
+                Rectangle sourceRect = new Rectangle(itemFrame() * t, 1 * t, t, t);
                 g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
             }
         }
