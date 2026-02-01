@@ -446,7 +446,7 @@ namespace mask
             playerAnimationFrame = (playerAnimationFrame + 1) % 40;
 
             bool moved = false;
-            if (playerAnimationFrame % 15 == 0)
+            if (playerAnimationFrame % 40 == 0)
             {
                 SorryAlanIMoveTheMobsNow();
             }
