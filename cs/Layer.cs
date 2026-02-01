@@ -1,4 +1,6 @@
 ﻿using mask;
+using System.Diagnostics;
+using System.Threading;
 
 namespace mask
 {
@@ -8,7 +10,29 @@ namespace mask
     {
     }
     public Tile[,] tiles = new Tile[MapX, MapY];
-  }
+
+        internal void ConsoleWrite()
+        {
+            for (int i = 0; i < MapX; i++)
+            {
+                for (int j = 0; j < MapY; j++)
+                {
+                    switch (tiles[i, j].tileType)
+                    {
+                        case ETile.None: Debug.Write(' ');break;
+    case ETile.Snow:       Debug.Write('s');break;
+    case ETile.Rock:       Debug.Write('r');break;
+    case ETile.Dirt:       Debug.Write('d');break;
+    case ETile.Ladder:     Debug.Write('l');break;
+    case ETile.FloorLadder:Debug.Write('f');break;
+    case ETile.Bridge:     Debug.Write('b');break;
+    case ETile.Wall: Debug.Write('w'); break;
+                    }
+                }
+                Debug.WriteLine("");
+            }
+        }
+    }
   // Layer l = new ExampleLayer();
   public record ExampleLayer : Layer
   {
