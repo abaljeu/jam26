@@ -117,6 +117,8 @@ namespace mask
                 }
             }
         }
+
+        public bool IsWearingMask;
     }
 
     public record Item(int Level, int X, int Y, Mask? mask);

@@ -145,12 +145,22 @@ namespace mask
         {
             foreach (var mob in GameState.theGame.LayerMobs())
             {
-                int xTile = hydra.X;
-                int yTile = hydra.Y;
                 Rectangle destRect = new Rectangle(mob.X * (t + 1), mob.Y * (t + 1), t, t);
 
                 Rectangle sourceRect = new Rectangle((mobFrame(mob.type)) * t, 1 * t, t, t);
                 g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+
+                // Draw a mask on the mob as needed
+                if (mob is Hydra)
+                {
+                    if (hydra.IsWearingMask)
+                    {
+                        Rectangle sourceRect2 = sourceRect;
+                        sourceRect2.Y += t;
+                        g.DrawImage(tileset, destRect, sourceRect2, GraphicsUnit.Pixel);
+
+                    }
+                }
             }
         }
         void DrawItems(Graphics g)
@@ -168,13 +178,17 @@ namespace mask
 
         void DrawMessageBoxText(Graphics g)
         {
-            int dstX = 52;
+            int leftMargin = 52;
+            int topMargin = 197;
+
+            int dstX = leftMargin;
+            int dstY = topMargin;
             int w = 8;
             int h = 16;
 
             for (int i=0; i<textframe; ++i)
             {
-                Rectangle destRect = new Rectangle(dstX, 197, w, h);
+                Rectangle destRect = new Rectangle(dstX, dstY, w, h);
 
                 char glyph = messageBoxString[i];
 
@@ -215,6 +229,17 @@ namespace mask
                 else if (glyph == '!')
                 {
                     srcX = 67 * 8;
+                }
+                else if (glyph == ' ')
+                {
+                    // Leave srcX as -1; nothing gets drawn
+                }
+                else if (glyph == '\n')
+                {
+                    // Leave srcX as -1; nothing gets drawn
+                    dstX = leftMargin - w;
+                    dstY += 20;
+
                 }
 
                 if (srcX > 0)
@@ -267,6 +292,8 @@ namespace mask
         {
             playerAnimationFrame = (playerAnimationFrame + 1) % 40;
 
+            bool moved = false;
+
             if (isWalkingLeft)
             {
                 playerXWalkFrame -= 2;
@@ -275,6 +302,7 @@ namespace mask
                     isWalkingLeft = false;
                     playerXWalkFrame = 0;
                     hydra.X--;
+                    moved = true;
                 }
             }
             else if (isWalkingRight)
@@ -285,6 +313,7 @@ namespace mask
                     isWalkingRight = false;
                     playerXWalkFrame = 0;
                     hydra.X++;
+                    moved = true;
                 }
             }
             else if (isWalkingUp)
@@ -295,6 +324,7 @@ namespace mask
                     isWalkingUp = false;
                     playerYWalkFrame = 0;
                     hydra.Y--;
+                    moved = true;
                 }
             }
             else if (isWalkingDown)
@@ -305,11 +335,34 @@ namespace mask
                     isWalkingDown = false;
                     playerYWalkFrame = 0;
                     hydra.Y++;
+                    moved = true;
                 }
             }
             if (messageBoxString.Length > 0 && textframe < messageBoxString.Length)
             {
                 textframe++;
+            }
+
+            if (moved)
+            {
+                // Check if we stepped on an item
+                for (int i = 0; i < GameState.theGame.Items.Count; ++i)
+                {
+                    var item = GameState.theGame.Items[i];
+                    if (hydra.X == item.X && hydra.Y == item.Y)
+                    {
+                        // Put on the mask
+                        hydra.IsWearingMask = true;
+
+                        // Take the mask off the floor
+                        GameState.theGame.Items.RemoveAt(i);
+
+                        textframe = 0;
+                        messageBoxString = "Monty put on Clown\nMask.";
+
+                        break;
+                    }
+                }
             }
 
             this.Invalidate();
