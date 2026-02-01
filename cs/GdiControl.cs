@@ -354,6 +354,91 @@ namespace mask
         }
         static bool ticking = false;
 
+        private void SorryAlanIMoveTheMobsNow()
+        {
+            bool mobMoved = false;
+            var rand = new Random();
+            int mobDirection = 0;
+            Mob dummy;
+            foreach (Mob m in game.LayerMobs())
+            {
+                if(m.type != EMob.Hydra)
+                {
+                    // 0 ,1 ,2, 3 = Up, down, left right
+                    do
+                    {
+                        mobDirection = rand.Next(0, 500) % 4;
+
+                        switch (mobDirection)
+                        {
+                            case 0:
+                                if (CanPass(m, m.X, m.Y + 1, out dummy))
+                                {
+                                    mobMoved = true;
+                                }
+                                else
+                                {
+                                    mobMoved = false;
+                                }
+                                break;
+                            case 1:
+                                if (CanPass(m, m.X, m.Y - 1, out dummy))
+                                {
+                                    mobMoved = true;
+                                }
+                                else
+                                {
+                                    mobMoved = false;
+                                }
+                                break;
+                            case 2:
+                                if (CanPass(m, m.X - 1, m.Y, out dummy))
+                                {
+                                    mobMoved = true;
+                                }
+                                else
+                                {
+                                    mobMoved = false;
+                                }
+                                break;
+                            case 3:
+                                if (CanPass(m, m.X + 1, m.Y, out dummy))
+                                {
+                                    mobMoved = true;
+                                }
+                                else
+                                {
+                                    mobMoved = false;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    } while (!mobMoved);
+
+                    switch (mobDirection)
+                    {
+                        case 0:
+                            m.Y += 1;
+                            break;
+                        case 1:
+                            m.Y -= 1;
+                            break;
+                        case 2:
+                            m.X -= 1;
+                            break;
+                        case 3:
+                            m.X += 1;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    mobMoved = false;
+                }
+            }
+        }
+
         private void GameplayTick()
         {
             if (ticking) return;
@@ -361,6 +446,10 @@ namespace mask
             playerAnimationFrame = (playerAnimationFrame + 1) % 40;
 
             bool moved = false;
+            if (playerAnimationFrame % 15 == 0)
+            {
+                SorryAlanIMoveTheMobsNow();
+            }
 
             if (game.isWalkingLeft)
             {
@@ -684,7 +773,7 @@ namespace mask
             base.OnMouseMove(e);
         }
 
-        bool CanPass(int forecastedPositionX, int forecastedPositionY, out Mob mobToBeFightingWith)
+        bool CanPass(Mob targetPlayer, int forecastedPositionX, int forecastedPositionY, out Mob mobToBeFightingWith)
         {
             mobToBeFightingWith = null;
 
@@ -705,7 +794,7 @@ namespace mask
             // Check if there's a mob here
             foreach (var mob in game.LayerMobs())
             {
-                if (mob.X == forecastedPositionX && mob.Y == forecastedPositionY && !(mob is Hydra))
+                if (mob.X == forecastedPositionX && mob.Y == forecastedPositionY && !(mob == targetPlayer))
                 {
                     mobToBeFightingWith = mob;
                     return false;
@@ -812,28 +901,28 @@ namespace mask
             {
                 if (op == Op.Right)
                 {
-                    if (CanPass(game.hydra.X + 1, game.hydra.Y, out game.mobHydraIsFighting))
+                    if (CanPass(game.hydra, game.hydra.X + 1, game.hydra.Y, out game.mobHydraIsFighting))
                     {
                         game.isWalkingRight = true;
                     }
                 }
                 else if (op == Op.Left)
                 {
-                    if (CanPass(game.hydra.X - 1, game.hydra.Y, out game.mobHydraIsFighting))
+                    if (CanPass(game.hydra, game.hydra.X - 1, game.hydra.Y, out game.mobHydraIsFighting))
                     {
                         game.isWalkingLeft = true;
                     }
                 }
                 else if (op == Op.Up)
                 {
-                    if (CanPass(game.hydra.X, game.hydra.Y - 1, out game.mobHydraIsFighting))
+                    if (CanPass(game.hydra, game.hydra.X, game.hydra.Y - 1, out game.mobHydraIsFighting))
                     {
                         game.isWalkingUp = true;
                     }
                 }
                 else if (op == Op.Down)
                 {
-                    if (CanPass(game.hydra.X, game.hydra.Y + 1, out game.mobHydraIsFighting))
+                    if (CanPass(game.hydra, game.hydra.X, game.hydra.Y + 1, out game.mobHydraIsFighting))
                     {
                         game.isWalkingDown = true;
                     }
