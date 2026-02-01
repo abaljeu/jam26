@@ -45,7 +45,7 @@ namespace mask
         int mouseX, mouseY;
         System.Timers.Timer gameTimer;
 
-        ExampleLayer floor;
+        Layer floor;
 
         public GdiControl()
         {
@@ -61,12 +61,13 @@ namespace mask
             textframe = 0;
             messageBoxString = "This is a test.";
 
-            floor = new ExampleLayer();
+          floor = GameState.theGame.CurrentLayer;
+            floor.ConsoleWrite();
         }
+        const int t = 16;/// tile size
 
         void DrawGameplay(Graphics g)
         {
-            int t = 16;
 
             for (int yTile = 0; yTile <= 15; ++yTile)
             {
@@ -105,23 +106,37 @@ namespace mask
                     {
                         tileIndex = 5;
                     }
+                    else if (tileType == ETile.None)
+                        tileIndex = 1;
 
-
-                    Rectangle destRect = new Rectangle(xTile * t, yTile * t, t, t);
+                        Rectangle destRect = new Rectangle(xTile * (t + 1), yTile * (t + 1), t, t);
                     Rectangle sourceRect = new Rectangle(tileIndex * t, 0, t, t);
                     g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
                 }
             }
+            DrawMobs(g);
+        }
 
+        void DrawMobs(Graphics g)
+        {
             // Draw the player character
+            //{
+            //    int xTile = playerWorldTileX;
+            //    int yTile = playerWorldTileY;
+            //    Rectangle destRect = new Rectangle(xTile * t + playerXWalkFrame, yTile * t + playerYWalkFrame, t, t);
+
+            //    Rectangle sourceRect = new Rectangle((4 + (playerAnimationFrame / 20)) * t, 1 * t, t, t);
+            //    g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+
+            //}
+            foreach (var mob in GameState.theGame.LayerMobs())
             {
                 int xTile = playerWorldTileX;
                 int yTile = playerWorldTileY;
-                Rectangle destRect = new Rectangle(xTile * t + playerXWalkFrame, yTile * t + playerYWalkFrame, t, t);
+                Rectangle destRect = new Rectangle(xTile * t + mob.X, yTile * t + mob.Y, t, t);
 
                 Rectangle sourceRect = new Rectangle((4 + (playerAnimationFrame / 20)) * t, 1 * t, t, t);
                 g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
-
             }
         }
 
