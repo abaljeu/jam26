@@ -34,12 +34,6 @@ namespace mask
         int textframe;
         string messageBoxString;
 
-        bool isWalkingRight;
-        bool isWalkingLeft;
-        bool isWalkingUp;
-        bool isWalkingDown;
-        Mob mobHydraIsFighting;
-        int enemyHealth;
 
         int scaleFactor = 3;
         int mouseX, mouseY;
@@ -64,23 +58,24 @@ namespace mask
             YouWinCommitted
         }
         PrimaryState CurrentPrimaryState;
+        GameState game;
 
         public GdiControl()
         {
+            game = GameState.theGame;
             debugFont = new Font("Arial", 16);
             debugBrush = new SolidBrush(Color.White);
             this.DoubleBuffered = true;
 
             CurrentPrimaryState = PrimaryState.SplashScreen;
 
-            floor = GameState.theGame.CurrentLayer;
+            floor = game.CurrentLayer;
             floor.ConsoleWrite();
 
-            hydra = GameState.theGame.hydra;
+            hydra = game.hydra;
 
             textframe = 0;
             messageBoxString = "Press enter to start.";
-
         }
 
         const int t = 16; // tile size
@@ -182,7 +177,7 @@ namespace mask
             
         void DrawMobs(Graphics g)
         {
-            foreach (var mob in GameState.theGame.LayerMobs())
+            foreach (var mob in game.LayerMobs())
             {
                 Rectangle destRect = new Rectangle(mob.X * (t + 1), mob.Y * (t + 1), t, t);
 
@@ -207,7 +202,7 @@ namespace mask
         }
         void DrawItems(Graphics g)
         {
-            foreach (var item in GameState.theGame.Items)
+            foreach (var item in game.Items)
             {
                 if (item is MaskOnGround)
                 {
@@ -359,6 +354,7 @@ namespace mask
             gameTimer.Elapsed += OnTick;
             gameTimer.Start();
         }
+        static bool ticking = false;
 
         private void GameplayTick()
         {
@@ -366,74 +362,74 @@ namespace mask
 
             bool moved = false;
 
-            if (isWalkingLeft)
+            if (game.isWalkingLeft)
             {
                 playerXWalkFrame -= 2;
                 if (playerXWalkFrame <= -16)
                 {
-                    isWalkingLeft = false;
+                    game.isWalkingLeft = false;
                     playerXWalkFrame = 0;
                     hydra.X--;
                     moved = true;
                 }
             }
-            else if (isWalkingRight)
+            else if (game.isWalkingRight)
             {
                 playerXWalkFrame += 2;
                 if (playerXWalkFrame > 16)
                 {
-                    isWalkingRight = false;
+                    game.isWalkingRight = false;
                     playerXWalkFrame = 0;
                     hydra.X++;
                     moved = true;
                 }
             }
-            else if (isWalkingUp)
+            else if (game.isWalkingUp)
             {
                 playerYWalkFrame -= 2;
                 if (playerYWalkFrame <= -16)
                 {
-                    isWalkingUp = false;
+                    game.isWalkingUp = false;
                     playerYWalkFrame = 0;
                     hydra.Y--;
                     moved = true;
                 }
             }
-            else if (isWalkingDown)
+            else if (game.isWalkingDown)
             {
                 playerYWalkFrame += 2;
                 if (playerYWalkFrame > 16)
                 {
-                    isWalkingDown = false;
+                    game.isWalkingDown = false;
                     playerYWalkFrame = 0;
                     hydra.Y++;
                     moved = true;
                 }
             }
 
-            if (mobHydraIsFighting != null)
+            if (game.mobHydraIsFighting != null)
             {
                 // Check if wearing the clown mask
                 if (hydra.CurrentlyWornMask == EFeature.Clown)
                 {
-                    mobHydraIsFighting.Health--;
+                    game.mobHydraIsFighting.Health--;
 
-                    if (mobHydraIsFighting.Health == 0)
+                    if (game.mobHydraIsFighting.Health == 0)
                     {
                         textframe = 0;
                         messageBoxString = "The slime was\nvanquished.";
 
-                        killedMobs.Add(mobHydraIsFighting);
-                        GameState.theGame.Mobs.Remove(mobHydraIsFighting);
+                        killedMobs.Add(game.mobHydraIsFighting);
+                        game.Mobs.Remove(game.mobHydraIsFighting);
 
-                        mobHydraIsFighting = null;
+                        game.mobHydraIsFighting = null;
 
                         // Check if all the slimes were vanquished
                         if (killedMobs.Count == 9)
                         {
                             // Spawn the party hat
                             spawnedPartyHat = new MaskOnGround(new Mask(ETile.Bridge, EFeature.Party), 1, 15, 7);
-                            GameState.theGame.Items.Add(spawnedPartyHat);
+                            game.Items.Add(spawnedPartyHat);
                         }
                     }
                     else
@@ -460,16 +456,16 @@ namespace mask
                     }
                 }
 
-                if (mobHydraIsFighting != null)
+                if (game.mobHydraIsFighting != null)
                 {
-                    enemyHealth = mobHydraIsFighting.Health;
+                    game.enemyHealth = game.mobHydraIsFighting.Health;
                 }
                 else
                 {
-                    enemyHealth = 0;
+                    game.enemyHealth = 0;
                 }
 
-                mobHydraIsFighting = null;
+                game.mobHydraIsFighting = null;
             }
 
             TextBoxTick();
@@ -477,9 +473,9 @@ namespace mask
             if (moved)
             {
                 // Check if we stepped on an item
-                for (int i = 0; i < GameState.theGame.Items.Count; ++i)
+                for (int i = 0; i < game.Items.Count; ++i)
                 {
-                    var item = GameState.theGame.Items[i];
+                    var item = game.Items[i];
                     if (hydra.X == item.X && hydra.Y == item.Y)
                     {
                         // Put on the mask
@@ -487,7 +483,7 @@ namespace mask
 
                         // Take the mask off the floor
                         removedMasksOnGround.Add(item);
-                        GameState.theGame.Items.RemoveAt(i);
+                        game.Items.RemoveAt(i);
 
                         // Apply the effect of the item and report a message
 
@@ -658,9 +654,9 @@ namespace mask
                     }
 
                     // Draw the enemy health bar
-                    if (enemyHealth > 0)
+                    if (game.enemyHealth > 0)
                     {
-                        int healthBarLength = enemyHealth;
+                        int healthBarLength = game.enemyHealth;
                         if (healthBarLength > 39)
                         {
                             healthBarLength = 39;
@@ -706,7 +702,7 @@ namespace mask
                 return false;
 
             // Check if there's a mob here
-            foreach (var mob in GameState.theGame.LayerMobs())
+            foreach (var mob in game.LayerMobs())
             {
                 if (mob.X == forecastedPositionX && mob.Y == forecastedPositionY && !(mob is Hydra))
                 {
@@ -729,36 +725,42 @@ namespace mask
             hydra.CurrentlyWornMask = null;
         }
 
-        void ShamefulReset_HACK()
+        void ResetGame()
         {
-            // TODO: Remove this :(
-            // TODO: Need to make this integrate better with GameState :(
-            GameState.theGame.Items.AddRange(removedMasksOnGround);
-            removedMasksOnGround.Clear();
-            hydra.X = 1;
-            hydra.Y = 2;
-            floor.DespawnLadder();
-            for (int i = 0; i < killedMobs.Count; ++i)
-            {
-                killedMobs[i].Health = 2;
-            }
-            GameState.theGame.Mobs.AddRange(killedMobs);
-            killedMobs.Clear();
-
-            floor.DespawnExit();
-
-            if (spawnedPartyHat != null)
-            {
-                GameState.theGame.Items.Remove(spawnedPartyHat);
-                spawnedPartyHat = null;
-            }
-
+            game.Reset();
             InitializeGameplay();
         }
+
+        public enum Op
+        { 
+            Left,
+            Right,
+            Up,
+            Down,
+            Enter
+        }
+        public record KeyOp(Keys k, Op o);
+        KeyOp[] KeyOps = [
+            new KeyOp(Keys.Enter, Op.Enter),
+            new KeyOp(Keys.A, Op.Left),
+            new KeyOp(Keys.S, Op.Down),
+            new KeyOp(Keys.D, Op.Right),
+            new KeyOp(Keys.W, Op.Up),
+            new KeyOp(Keys.Oemcomma, Op.Up),
+            new KeyOp(Keys.O, Op.Down),
+            new KeyOp(Keys.E, Op.Right),
+            ];
+        public Op? FindOp(Keys k) 
+        {
+            foreach (var ko in KeyOps) { if (ko.k == k) return ko.o; }
+                return null; }
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
+            Op? op = FindOp(e.KeyCode);
+
+            bool pressedEligibleKey = op != null;
 
 
             if (CurrentPrimaryState == PrimaryState.SplashScreen)
@@ -770,12 +772,6 @@ namespace mask
             }
             else if (CurrentPrimaryState == PrimaryState.GameOverPending)
             {
-                bool pressedEligibleKey = e.KeyCode == Keys.Enter ||
-                    e.KeyCode == Keys.W ||
-                    e.KeyCode == Keys.A ||
-                    e.KeyCode == Keys.S ||
-                    e.KeyCode == Keys.D;
-
                 if (pressedEligibleKey && textframe == messageBoxString.Length)
                 {
                     CurrentPrimaryState = PrimaryState.GameOverCommitted;
@@ -787,17 +783,11 @@ namespace mask
             {
                 if (e.KeyCode == Keys.Enter && textframe == messageBoxString.Length)
                 {
-                    ShamefulReset_HACK();
+                    ResetGame();
                 }
             }
             else if (CurrentPrimaryState == PrimaryState.YouWinPending)
             {
-                bool pressedEligibleKey = e.KeyCode == Keys.Enter ||
-                    e.KeyCode == Keys.W ||
-                    e.KeyCode == Keys.A ||
-                    e.KeyCode == Keys.S ||
-                    e.KeyCode == Keys.D;
-
                 if (pressedEligibleKey && textframe == messageBoxString.Length)
                 {
                     CurrentPrimaryState = PrimaryState.YouWinCommitted;
@@ -809,37 +799,37 @@ namespace mask
             {
                 if (e.KeyCode == Keys.Enter && textframe == messageBoxString.Length)
                 {
-                    ShamefulReset_HACK();
+                    ResetGame();
                 }
             }
             else if (CurrentPrimaryState == PrimaryState.Gameplay)
             {
-                if (e.KeyCode == Keys.D)
+                if (op == Op.Right)
                 {
-                    if (CanPass(hydra.X + 1, hydra.Y, out mobHydraIsFighting))
+                    if (CanPass(hydra.X + 1, hydra.Y, out game.mobHydraIsFighting))
                     {
-                        isWalkingRight = true;
+                        game.isWalkingRight = true;
                     }
                 }
-                else if (e.KeyCode == Keys.A)
+                else if (op == Op.Left)
                 {
-                    if (CanPass(hydra.X - 1, hydra.Y, out mobHydraIsFighting))
+                    if (CanPass(hydra.X - 1, hydra.Y, out game.mobHydraIsFighting))
                     {
-                        isWalkingLeft = true;
+                        game.isWalkingLeft = true;
                     }
                 }
-                else if (e.KeyCode == Keys.W)
+                else if (op == Op.Up)
                 {
-                    if (CanPass(hydra.X, hydra.Y - 1, out mobHydraIsFighting))
+                    if (CanPass(hydra.X, hydra.Y - 1, out game.mobHydraIsFighting))
                     {
-                        isWalkingUp = true;
+                        game.isWalkingUp = true;
                     }
                 }
-                else if (e.KeyCode == Keys.S)
+                else if (op == Op.Down)
                 {
-                    if (CanPass(hydra.X, hydra.Y + 1, out mobHydraIsFighting))
+                    if (CanPass(hydra.X, hydra.Y + 1, out game.mobHydraIsFighting))
                     {
-                        isWalkingDown = true;
+                        game.isWalkingDown = true;
                     }
                 }
             }

@@ -1,24 +1,24 @@
 ﻿namespace mask
 {
-  // The World and its levels are only constructed once
-  // at the beginning of the game.
-  public class Level
-  {
-    public readonly int X = 20, Y = 15;
-    protected Block[,] Blocks;
-    public Level()
+    // The World and its levels are only constructed once
+    // at the beginning of the game.
+    public class Level
     {
-      Blocks = new Block[X, Y];
-      for (int i = 0; i < X; i++)
-      {
-        for (int j = 0; j < Y; j++)
+        public readonly int X = 20, Y = 15;
+        protected Block[,] Blocks;
+        public Level()
         {
-          Blocks[i, j] = new Block();
+            Blocks = new Block[X, Y];
+            for (int i = 0; i < X; i++)
+            {
+                for (int j = 0; j < Y; j++)
+                {
+                    Blocks[i, j] = new Block();
+                }
+            }
         }
-      }
-    }
-    public List<Mob> InitialMobs = new List<Mob>();
-    public List<MaskOnGround> InitialItems = new List<MaskOnGround>();
+        public List<Mob> InitialMobs = new List<Mob>();
+        public List<MaskOnGround> InitialItems = new List<MaskOnGround>();
         public void AddRange(ETile type, int x0, int y0, int w, int h)
         {
             for (int i = 0; x0 + i < X; i++)
@@ -36,119 +36,119 @@
                 }
             }
         }
-    public Block BlockAt(int x, int y)
-    {
-      if (x < 0 || y < 0 || x >= X || y >= Y)
-        return new Block();
-
-      return Blocks[x, y];
-    }
-  }
-  public class BasementLevel : Level
-  {
-    public BasementLevel() : base()
-    {
-      Blocks[13, 13].Add(ETile.Ladder);
-      AddRange(ETile.Snow, 0, 0, X, Y);
-    }
-  }
-
-  public class StartingLevel : Level
-  {
-    public StartingLevel() : base()
-    {
-      AddRange(ETile.Dirt, 0, 0, 5, 5);
-      AddRange(ETile.Bridge, 5, 3, 4, 2);
-      AddRange(ETile.Rock, 9, 0, 20, 20);
-      AddRange(ETile.Rock, 0, 9, 20, 20);
-      Blocks[12, 12].Add(ETile.Ladder);
-
-      Blocks[13, 13].Clear();
-      Blocks[13, 13].Add(ETile.FloorLadder);
-
-      InitialMobs.Add(GameState.theGame.hydra);
-
-        for (int i = 10; i< 16; i+=2)
+        public Block BlockAt(int x, int y)
         {
-            for (int j = 2; j < 8; j += 2)
+            if (x < 0 || y < 0 || x >= X || y >= Y)
+                return new Block();
+
+            return Blocks[x, y];
+        }
+    }
+    public class BasementLevel : Level
+    {
+        public BasementLevel() : base()
+        {
+            Blocks[13, 13].Add(ETile.Ladder);
+            AddRange(ETile.Snow, 0, 0, X, Y);
+        }
+    }
+
+    public class StartingLevel : Level
+    {
+        public StartingLevel() : base()
+        {
+            AddRange(ETile.Dirt, 0, 0, 5, 5);
+            AddRange(ETile.Bridge, 5, 3, 4, 2);
+            AddRange(ETile.Rock, 9, 0, 20, 20);
+            AddRange(ETile.Rock, 0, 9, 20, 20);
+            Blocks[12, 12].Add(ETile.Ladder);
+
+            Blocks[13, 13].Clear();
+            Blocks[13, 13].Add(ETile.FloorLadder);
+
+
+            for (int i = 10; i < 16; i += 2)
             {
-                int health = 2;
-                InitialMobs.Add(new Mob(EMob.Slime, 1,/*x,y*/ i, j, health, 1, 1));
+                for (int j = 2; j < 8; j += 2)
+                {
+                    int health = 2;
+                    InitialMobs.Add(new Mob(EMob.Slime, 1,/*x,y*/ i, j, health, 1, 1));
+                }
+            }
+
+            // Populate initial items here
+            InitialItems.Add(
+                new MaskOnGround(new Mask(ETile.Bridge, EFeature.Construction), 1, 1, 1));
+
+            InitialItems.Add(
+                new MaskOnGround(new Mask(ETile.Bridge, EFeature.Clown), 1, 9, 9));
+        }
+    }
+
+    // very weak level design
+    // but good for a stress test of behaviors.
+    public class SecondLevel : Level
+    {
+        public SecondLevel() : base()
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                for (int j = 0; j < 15; j++)
+                {
+                    ETile type = Tile.RandomTileType();
+                    if (type != ETile.None && type != ETile.FloorLadder && type != ETile.Ladder)
+                        Blocks[i, j].Add(type);
+                }
+            }
+
+            Blocks[13, 13].Add(ETile.FloorLadder);
+
+        }
+    }
+
+    public class World
+    {
+        private Level[] Levels = new Level[5];
+        public Level Level(int z)
+        {
+            if (z > 0 && z < Levels.Length)
+                return Levels[z];
+            return Levels[1];
+        }
+        public World(Hydra h)
+        {
+            Levels[1] = new StartingLevel();
+            Levels[1].InitialMobs.Add(h);
+            Levels[0] = new BasementLevel();
+            Levels[2] = new SecondLevel();
+        }
+        public IEnumerable<Mob> InitialMobs
+        {
+            get
+            {
+                foreach (Level l in Levels)
+                {
+                    if (l != null)
+                    {
+                        foreach (Mob mob in l.InitialMobs)
+                            yield return mob;
+                    }
+                }
             }
         }
-
-        // Populate initial items here
-        InitialItems.Add(
-            new MaskOnGround(new Mask(ETile.Bridge, EFeature.Construction), 1, 1, 1));
-            
-        InitialItems.Add(
-            new MaskOnGround(new Mask(ETile.Bridge, EFeature.Clown), 1, 9, 9));
-    }
-  }
-
-  // very weak level design
-  // but good for a stress test of behaviors.
-  public class SecondLevel : Level
-  {
-    public SecondLevel() : base()
-    {
-      for (int i = 0; i < 20; i++)
-      {
-        for (int j = 0; j < 15; j++)
+        public IEnumerable<MaskOnGround> InitialItems
         {
-          ETile type = Tile.RandomTileType();
-          if (type != ETile.None && type != ETile.FloorLadder && type != ETile.Ladder)
-            Blocks[i, j].Add(type);
+            get
+            {
+                foreach (Level l in Levels)
+                {
+                    if (l != null)
+                    {
+                        foreach (MaskOnGround mask in l.InitialItems)
+                            yield return mask;
+                    }
+                }
+            }
         }
-      }
-
-      Blocks[13, 13].Add(ETile.FloorLadder);
-
     }
-  }
-
-  public class World
-  {
-    private Level[] Levels = new Level[5];
-    public Level Level(int z)
-    {
-      if (z > 0 && z < Levels.Length)
-        return Levels[z];
-      return Levels[1];
-    }
-    public World()
-    {
-      Levels[1] = new StartingLevel();
-      Levels[0] = new BasementLevel();
-      Levels[2] = new SecondLevel();
-    }
-    public IEnumerable<Mob> InitialMobs
-    {
-      get
-      {
-        foreach (Level l in Levels)
-        {
-          if (l != null)
-          {
-            foreach (Mob mob in l.InitialMobs)
-              yield return mob;
-          }
-        }
-      }
-    }
-    public IEnumerable<MaskOnGround> InitialItems
-    {
-      get
-      {
-        foreach (Level l in Levels)
-        {
-          if (l != null)
-          {
-            foreach (MaskOnGround mask in l.InitialItems)
-              yield return mask;
-          }
-        }
-      }
-    }
-  }
 }

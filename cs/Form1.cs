@@ -8,7 +8,6 @@ namespace mask
     {
         public Form1()
         {
-            GameState.theGame.InitGame();
 
             InitializeComponent();
             WindowState = FormWindowState.Maximized;
