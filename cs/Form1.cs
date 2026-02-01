@@ -21,7 +21,7 @@ namespace mask
                 audioPath += "\\audio\\background_placeholder_1.wav";
 
                 SoundPlayer sound = new SoundPlayer(audioPath);
-                sound.Play();
+                sound.PlayLooping();
 
         }
     }
