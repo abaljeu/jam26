@@ -1,5 +1,6 @@
 
 using System.Drawing.Drawing2D;
+using System.Media;
 
 namespace mask
 {
@@ -10,6 +11,8 @@ namespace mask
         {
             InitializeComponent();
             WindowState = FormWindowState.Maximized;
+            SoundPlayer sound = new SoundPlayer("../../../../background_placeholder_1.wav");
+            sound.Play();
         }
     }
 }
