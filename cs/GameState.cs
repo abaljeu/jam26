@@ -5,7 +5,7 @@
         public static GameState theGame = new GameState();
         GameState()
         { 
-            hydra = new Hydra(new Mob(EMob.Hydra, 1, 1, 2, 1, 0, 0), [], []);
+            hydra = new Hydra(new Mob(EMob.Hydra, 1, 1, 2, 1, 0, 0));
         }
         public static readonly World theWorld = new World();
 

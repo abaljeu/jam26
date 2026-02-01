@@ -26,8 +26,6 @@ namespace mask
 
         bool systemCursor;
 
-        int playerWorldTileX;
-        int playerWorldTileY;
         
         int playerAnimationFrame = 0;
         int playerXWalkFrame = 0;
@@ -46,6 +44,7 @@ namespace mask
         System.Timers.Timer gameTimer;
 
         Layer floor;
+        private Hydra hydra;
 
         public GdiControl()
         {
@@ -55,15 +54,16 @@ namespace mask
 
             systemCursor = true;
 
-            playerWorldTileX = 1;
-            playerWorldTileY = 1;
+            floor = GameState.theGame.CurrentLayer;
+            floor.ConsoleWrite();
+
+            hydra = GameState.theGame.hydra;
 
             textframe = 0;
-            messageBoxString = "This is a test.";
+            messageBoxString = "Monty must escape!";
 
-          floor = GameState.theGame.CurrentLayer;
-            floor.ConsoleWrite();
         }
+
         const int t = 16;/// tile size
 
         void DrawGameplay(Graphics g)
@@ -139,14 +139,14 @@ namespace mask
         }
         int itemFrame()
         {
-            return 12; // mask item
+            return 7; // mask item
         }
         void DrawMobs(Graphics g)
         {
             foreach (var mob in GameState.theGame.LayerMobs())
             {
-                int xTile = playerWorldTileX;
-                int yTile = playerWorldTileY;
+                int xTile = hydra.X;
+                int yTile = hydra.Y;
                 Rectangle destRect = new Rectangle(mob.X * (t + 1), mob.Y * (t + 1), t, t);
 
                 Rectangle sourceRect = new Rectangle((mobFrame(mob.type)) * t, 1 * t, t, t);
@@ -157,11 +157,11 @@ namespace mask
         {
             foreach (var item in GameState.theGame.Items)
             {
-                int xTile = playerWorldTileX;
-                int yTile = playerWorldTileY;
+                int xTile = hydra.X;
+                int yTile = hydra.Y;
                 Rectangle destRect = new Rectangle(item.X * (t + 1), item.Y * (t + 1), t, t);
 
-                Rectangle sourceRect = new Rectangle(itemFrame() * t, 1 * t, t, t);
+                Rectangle sourceRect = new Rectangle(itemFrame() * t, 0 * t, t, t);
                 g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
             }
         }
@@ -274,7 +274,7 @@ namespace mask
                 {
                     isWalkingLeft = false;
                     playerXWalkFrame = 0;
-                    playerWorldTileX--;
+                    hydra.X--;
                 }
             }
             else if (isWalkingRight)
@@ -284,7 +284,7 @@ namespace mask
                 {
                     isWalkingRight = false;
                     playerXWalkFrame = 0;
-                    playerWorldTileX++;
+                    hydra.X++;
                 }
             }
             else if (isWalkingUp)
@@ -294,7 +294,7 @@ namespace mask
                 {
                     isWalkingUp = false;
                     playerYWalkFrame = 0;
-                    playerWorldTileY--;
+                    hydra.Y--;
                 }
             }
             else if (isWalkingDown)
@@ -304,7 +304,7 @@ namespace mask
                 {
                     isWalkingDown = false;
                     playerYWalkFrame = 0;
-                    playerWorldTileY++;
+                    hydra.Y++;
                 }
             }
             if (messageBoxString.Length > 0 && textframe < messageBoxString.Length)
