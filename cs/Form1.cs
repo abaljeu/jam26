@@ -11,8 +11,18 @@ namespace mask
         {
             InitializeComponent();
             WindowState = FormWindowState.Maximized;
-            SoundPlayer sound = new SoundPlayer("../../../../background_placeholder_1.wav");
-            sound.Play();
+
+                string dir = Directory.GetCurrentDirectory();
+                string audioPath = dir;
+
+#if DEBUG
+                audioPath = dir + "\\..\\..\\..\\..";
+#endif
+                audioPath += "\\audio\\background_placeholder_1.wav";
+
+                SoundPlayer sound = new SoundPlayer(audioPath);
+                sound.Play();
+
         }
     }
 }
