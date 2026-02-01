@@ -40,7 +40,6 @@ namespace mask
         System.Timers.Timer gameTimer;
 
         Layer floor;
-        private Hydra hydra;
         List<MaskOnGround> removedMasksOnGround = new List<MaskOnGround>();
         List<Mob> killedMobs = new List<Mob>();
         MaskOnGround spawnedPartyHat;
@@ -71,8 +70,6 @@ namespace mask
 
             floor = game.CurrentLayer;
             floor.ConsoleWrite();
-
-            hydra = game.hydra;
 
             textframe = 0;
             messageBoxString = "Press enter to start.";
@@ -188,9 +185,9 @@ namespace mask
                 // Draw a mask on the mob as needed
                 if (mob is Hydra)
                 {
-                    if (hydra.CurrentlyWornMask != null)
+                    if (game.hydra.CurrentlyWornMask != null)
                     {
-                        int currentMaskFrame = maskWornFrame(hydra.CurrentlyWornMask.Value);
+                        int currentMaskFrame = maskWornFrame(game.hydra.CurrentlyWornMask.Value);
                         Rectangle sourceRect2 = sourceRect;
                         sourceRect2.X = currentMaskFrame * t;
                         sourceRect2.Y += t * 2;
@@ -220,14 +217,14 @@ namespace mask
 
         void DrawCurrentlyWornMaskUI(Graphics g)
         {
-            if (hydra.CurrentlyWornMask == null)
+            if (game.hydra.CurrentlyWornMask == null)
                 return;
 
             int uiX = 16;
             int uiY = 198;
             Rectangle destRect = new Rectangle(uiX, uiY, t, t);
 
-            int currentMaskFrame = maskOnGroundItemFrame(hydra.CurrentlyWornMask.Value);
+            int currentMaskFrame = maskOnGroundItemFrame(game.hydra.CurrentlyWornMask.Value);
             Rectangle sourceRect = new Rectangle(currentMaskFrame * t, 0, t, t);
 
             g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
@@ -358,6 +355,8 @@ namespace mask
 
         private void GameplayTick()
         {
+            if (ticking) return;
+            ticking = true;
             playerAnimationFrame = (playerAnimationFrame + 1) % 40;
 
             bool moved = false;
@@ -369,7 +368,7 @@ namespace mask
                 {
                     game.isWalkingLeft = false;
                     playerXWalkFrame = 0;
-                    hydra.X--;
+                    game.hydra.X--;
                     moved = true;
                 }
             }
@@ -380,7 +379,7 @@ namespace mask
                 {
                     game.isWalkingRight = false;
                     playerXWalkFrame = 0;
-                    hydra.X++;
+                    game.hydra.X++;
                     moved = true;
                 }
             }
@@ -391,7 +390,7 @@ namespace mask
                 {
                     game.isWalkingUp = false;
                     playerYWalkFrame = 0;
-                    hydra.Y--;
+                    game.hydra.Y--;
                     moved = true;
                 }
             }
@@ -402,7 +401,7 @@ namespace mask
                 {
                     game.isWalkingDown = false;
                     playerYWalkFrame = 0;
-                    hydra.Y++;
+                    game.hydra.Y++;
                     moved = true;
                 }
             }
@@ -410,7 +409,7 @@ namespace mask
             if (game.mobHydraIsFighting != null)
             {
                 // Check if wearing the clown mask
-                if (hydra.CurrentlyWornMask == EFeature.Clown)
+                if (game.hydra.CurrentlyWornMask == EFeature.Clown)
                 {
                     game.mobHydraIsFighting.Health--;
 
@@ -442,8 +441,8 @@ namespace mask
                 else
                 {
                     // Lose the fight
-                    hydra.HP--;
-                    if (hydra.HP <= 0)
+                    game.hydra.HP--;
+                    if (game.hydra.HP <= 0)
                     {
                         textframe = 0;
                         messageBoxString = "Monty ran out of\nstrength.";
@@ -476,10 +475,10 @@ namespace mask
                 for (int i = 0; i < game.Items.Count; ++i)
                 {
                     var item = game.Items[i];
-                    if (hydra.X == item.X && hydra.Y == item.Y)
+                    if (game.hydra.X == item.X && game.hydra.Y == item.Y)
                     {
                         // Put on the mask
-                        hydra.CurrentlyWornMask = item.mask.WhichEffect;
+                        game.hydra.CurrentlyWornMask = item.mask.WhichEffect;
 
                         // Take the mask off the floor
                         removedMasksOnGround.Add(item);
@@ -487,18 +486,18 @@ namespace mask
 
                         // Apply the effect of the item and report a message
 
-                        if (hydra.CurrentlyWornMask == EFeature.Construction)
+                        if (game.hydra.CurrentlyWornMask == EFeature.Construction)
                         {
                             textframe = 0;
                             messageBoxString = "Monty put on\nConstruction Hat.";
                             floor.SpawnLadder();
                         }
-                        else if (hydra.CurrentlyWornMask == EFeature.Clown)
+                        else if (game.hydra.CurrentlyWornMask == EFeature.Clown)
                         {
                             textframe = 0;
                             messageBoxString = "Monty put on Clown\nMask.";
                         }
-                        else if (hydra.CurrentlyWornMask == EFeature.Party)
+                        else if (game.hydra.CurrentlyWornMask == EFeature.Party)
                         {
                             textframe = 0;
                             messageBoxString = "Monty put on Party\nHat.";
@@ -511,7 +510,7 @@ namespace mask
                 }
 
                 // Check if we stepped on the bridge
-                Tile thisTile = floor.tiles[hydra.X, hydra.Y];
+                Tile thisTile = floor.tiles[game.hydra.X, game.hydra.Y];
                 ETile tileType = thisTile.tileType;
                 if (tileType == ETile.Bridge)
                 {
@@ -520,6 +519,7 @@ namespace mask
                     CurrentPrimaryState = PrimaryState.YouWinPending;
                 }
             }
+            ticking = false;
         }
 
         private void TextBoxTick()
@@ -645,7 +645,7 @@ namespace mask
 
                     // Draw the player health bar
                     {
-                        int healthBarLength = hydra.HP;
+                        int healthBarLength = game.hydra.HP;
                         if (healthBarLength > 39)
                         {
                             healthBarLength = 39;
@@ -721,8 +721,8 @@ namespace mask
 
             textframe = 0;
             messageBoxString = "Monty must escape!";
-            hydra.HP = 10;
-            hydra.CurrentlyWornMask = null;
+            game.hydra.HP = 10;
+            game.hydra.CurrentlyWornMask = null;
         }
 
         void ResetGame()
@@ -806,28 +806,28 @@ namespace mask
             {
                 if (op == Op.Right)
                 {
-                    if (CanPass(hydra.X + 1, hydra.Y, out game.mobHydraIsFighting))
+                    if (CanPass(game.hydra.X + 1, game.hydra.Y, out game.mobHydraIsFighting))
                     {
                         game.isWalkingRight = true;
                     }
                 }
                 else if (op == Op.Left)
                 {
-                    if (CanPass(hydra.X - 1, hydra.Y, out game.mobHydraIsFighting))
+                    if (CanPass(game.hydra.X - 1, game.hydra.Y, out game.mobHydraIsFighting))
                     {
                         game.isWalkingLeft = true;
                     }
                 }
                 else if (op == Op.Up)
                 {
-                    if (CanPass(hydra.X, hydra.Y - 1, out game.mobHydraIsFighting))
+                    if (CanPass(game.hydra.X, game.hydra.Y - 1, out game.mobHydraIsFighting))
                     {
                         game.isWalkingUp = true;
                     }
                 }
                 else if (op == Op.Down)
                 {
-                    if (CanPass(hydra.X, hydra.Y + 1, out game.mobHydraIsFighting))
+                    if (CanPass(game.hydra.X, game.hydra.Y + 1, out game.mobHydraIsFighting))
                     {
                         game.isWalkingDown = true;
                     }
