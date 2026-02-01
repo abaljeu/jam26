@@ -58,7 +58,7 @@ namespace mask
 
   }
   public enum EnableFlag { EnabledBy, DisabledBy }
-  class GameObjects
+  public class GameObjects
   {
     public Block TrapBlock 
     { get => new Block(
@@ -75,7 +75,7 @@ namespace mask
   {
     public IEnumerable<Mask> EquippedMasks
     {
-      get => heads.Select(h => h.mask);
+      get { return heads.Select(h => h.mask); }
     }
   }
 
