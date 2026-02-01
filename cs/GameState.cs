@@ -3,7 +3,7 @@
     public class GameState
     {
         public static GameState theGame = new GameState();
-        GameState()
+        public GameState()
         { 
             hydra = new Hydra(new Mob(EMob.Hydra, 1, 1, 2, 1, 0, 0));
         }

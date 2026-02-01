@@ -69,8 +69,13 @@
       InitialMobs.Add(GameState.theGame.hydra);
 
         for (int i = 10; i< 16; i+=2)
-            for (int j=2; j<8; j+=2)
-                InitialMobs.Add(new Mob(EMob.Slime, 1,/*x,y*/ i,j, 1, 1, 1));
+        {
+            for (int j = 2; j < 8; j += 2)
+            {
+                int health = 2;
+                InitialMobs.Add(new Mob(EMob.Slime, 1,/*x,y*/ i, j, health, 1, 1));
+            }
+        }
 
         // Populate initial items here
         InitialItems.Add(

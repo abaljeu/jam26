@@ -19,12 +19,13 @@ namespace mask
         Bitmap glyphs;
         Bitmap tileset;
         Brush whiteBrush;
+        Bitmap splashScreen;
+        Bitmap gameOverScreen;
+        Bitmap youWinScreen;
 
         Bitmap native;
 
         bool gameplayAssetsLoaded;
-
-        bool systemCursor;
         
         int playerAnimationFrame = 0;
         int playerXWalkFrame = 0;
@@ -38,6 +39,7 @@ namespace mask
         bool isWalkingUp;
         bool isWalkingDown;
         Mob mobHydraIsFighting;
+        int enemyHealth;
 
         int scaleFactor = 3;
         int mouseX, mouseY;
@@ -45,6 +47,23 @@ namespace mask
 
         Layer floor;
         private Hydra hydra;
+        List<MaskOnGround> removedMasksOnGround = new List<MaskOnGround>();
+        List<Mob> killedMobs = new List<Mob>();
+        MaskOnGround spawnedPartyHat;
+
+        enum PrimaryState
+        {
+            SplashScreen,
+
+            Gameplay,
+
+            GameOverPending,
+            GameOverCommitted,
+
+            YouWinPending,
+            YouWinCommitted
+        }
+        PrimaryState CurrentPrimaryState;
 
         public GdiControl()
         {
@@ -52,7 +71,7 @@ namespace mask
             debugBrush = new SolidBrush(Color.White);
             this.DoubleBuffered = true;
 
-            systemCursor = true;
+            CurrentPrimaryState = PrimaryState.SplashScreen;
 
             floor = GameState.theGame.CurrentLayer;
             floor.ConsoleWrite();
@@ -60,7 +79,7 @@ namespace mask
             hydra = GameState.theGame.hydra;
 
             textframe = 0;
-            messageBoxString = "Monty must escape!";
+            messageBoxString = "Press enter to start.";
 
         }
 
@@ -143,6 +162,7 @@ namespace mask
             {
                 case EFeature.Clown: return 7;
                 case EFeature.Construction: return 8;
+                case EFeature.Party: return 9;
                 default:
                     return 0;
             }
@@ -154,6 +174,7 @@ namespace mask
             {
                 case EFeature.Clown: return 10;
                 case EFeature.Construction: return 11;
+                case EFeature.Party: return 12;
                 default:
                     return 0;
             }
@@ -308,6 +329,15 @@ namespace mask
             reference = new Bitmap(imagePath + "Reference.png");
             reference.SetResolution(96, 96);
 
+            splashScreen = new Bitmap(imagePath + "SplashScreen.png");
+            splashScreen.SetResolution(96, 96);
+
+            gameOverScreen = new Bitmap(imagePath + "GameOver.png");
+            gameOverScreen.SetResolution(96, 96);
+
+            youWinScreen = new Bitmap(imagePath + "YouWin.png");
+            youWinScreen.SetResolution(96, 96);
+
             pointer = new Bitmap(imagePath + "Pointer.png");
             pointer.SetResolution(96, 96);
 
@@ -330,7 +360,7 @@ namespace mask
             gameTimer.Start();
         }
 
-        private void OnTick(object? sender, System.Timers.ElapsedEventArgs e)
+        private void GameplayTick()
         {
             playerAnimationFrame = (playerAnimationFrame + 1) % 40;
 
@@ -386,8 +416,32 @@ namespace mask
                 // Check if wearing the clown mask
                 if (hydra.CurrentlyWornMask == EFeature.Clown)
                 {
-                    textframe = 0;
-                    messageBoxString = "Did 1 damage using\nClown Mask.";
+                    mobHydraIsFighting.Health--;
+
+                    if (mobHydraIsFighting.Health == 0)
+                    {
+                        textframe = 0;
+                        messageBoxString = "The slime was\nvanquished.";
+
+                        killedMobs.Add(mobHydraIsFighting);
+                        GameState.theGame.Mobs.Remove(mobHydraIsFighting);
+
+                        mobHydraIsFighting = null;
+
+                        // Check if all the slimes were vanquished
+                        if (killedMobs.Count == 9)
+                        {
+                            // Spawn the party hat
+                            spawnedPartyHat = new MaskOnGround(new Mask(ETile.Bridge, EFeature.Party), 1, 15, 7);
+                            GameState.theGame.Items.Add(spawnedPartyHat);
+                        }
+                    }
+                    else
+                    {
+                        textframe = 0;
+                        messageBoxString = "Did 1 damage using\nClown Mask.";
+                    }
+
                 }
                 else
                 {
@@ -397,7 +451,7 @@ namespace mask
                     {
                         textframe = 0;
                         messageBoxString = "Monty ran out of\nstrength.";
-                        // Game over here.
+                        CurrentPrimaryState = PrimaryState.GameOverPending;
                     }
                     else
                     {
@@ -406,13 +460,19 @@ namespace mask
                     }
                 }
 
+                if (mobHydraIsFighting != null)
+                {
+                    enemyHealth = mobHydraIsFighting.Health;
+                }
+                else
+                {
+                    enemyHealth = 0;
+                }
+
                 mobHydraIsFighting = null;
             }
 
-            if (messageBoxString.Length > 0 && textframe < messageBoxString.Length)
-            {
-                textframe++;
-            }
+            TextBoxTick();
 
             if (moved)
             {
@@ -426,6 +486,7 @@ namespace mask
                         hydra.CurrentlyWornMask = item.mask.WhichEffect;
 
                         // Take the mask off the floor
+                        removedMasksOnGround.Add(item);
                         GameState.theGame.Items.RemoveAt(i);
 
                         // Apply the effect of the item and report a message
@@ -441,10 +502,64 @@ namespace mask
                             textframe = 0;
                             messageBoxString = "Monty put on Clown\nMask.";
                         }
+                        else if (hydra.CurrentlyWornMask == EFeature.Party)
+                        {
+                            textframe = 0;
+                            messageBoxString = "Monty put on Party\nHat.";
+
+                            floor.SpawnExit();
+                        }
 
                         break;
                     }
                 }
+
+                // Check if we stepped on the bridge
+                Tile thisTile = floor.tiles[hydra.X, hydra.Y];
+                ETile tileType = thisTile.tileType;
+                if (tileType == ETile.Bridge)
+                {
+                    textframe = 0;
+                    messageBoxString = "Monty successfully\nescaped!";
+                    CurrentPrimaryState = PrimaryState.YouWinPending;
+                }
+            }
+        }
+
+        private void TextBoxTick()
+        {
+            if (messageBoxString.Length > 0 && textframe < messageBoxString.Length)
+            {
+                textframe++;
+            }
+        }
+
+        private void OnTick(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+
+            if (CurrentPrimaryState == PrimaryState.SplashScreen)
+            {
+                TextBoxTick();
+            }
+            else if (CurrentPrimaryState == PrimaryState.GameOverPending)
+            {
+                TextBoxTick();
+            }
+            else if (CurrentPrimaryState == PrimaryState.GameOverCommitted)
+            {
+                TextBoxTick();
+            }
+            else if (CurrentPrimaryState == PrimaryState.YouWinPending)
+            {
+                TextBoxTick();
+            }
+            else if (CurrentPrimaryState == PrimaryState.YouWinCommitted)
+            {
+                TextBoxTick();
+            }
+            else if (CurrentPrimaryState == PrimaryState.Gameplay)
+            {
+                GameplayTick();
             }
 
             this.Invalidate();
@@ -469,28 +584,95 @@ namespace mask
                 Graphics g = Graphics.FromImage(native);
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
                 g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                g.DrawImageUnscaled(reference, 0, 0, 320, 240);
 
-                DrawGameplay(g);
-
-                // Draw the HUD
-                g.DrawImageUnscaled(uiflavor, 0, 0);
-
-                DrawCurrentlyWornMaskUI(g);
-
-                // Draw the health bar
-                g.FillRectangle(whiteBrush, 268, 193, hydra.HP, 4); // Fills 0..39
-
-                // Draw the XP bar
-                g.FillRectangle(whiteBrush, 268, 202, 20, 4); // Fills 0..39
-
-                if (messageBoxString.Length > 0)
+                if (CurrentPrimaryState == PrimaryState.SplashScreen)
                 {
-                    DrawMessageBoxText(g);
-                }
+                    g.DrawImageUnscaled(splashScreen, 0, 0);
 
-                // Draw the mouse pointer
-                g.DrawImageUnscaled(pointer, mouseX, mouseY);
+                    if (messageBoxString.Length > 0)
+                    {
+                        DrawMessageBoxText(g);
+                    }
+                }
+                else if (CurrentPrimaryState == PrimaryState.GameOverPending)
+                {
+                    g.Clear(Color.Black);
+
+                    // Draw the HUD
+                    g.DrawImageUnscaled(uiflavor, 0, 0);
+
+                    if (messageBoxString.Length > 0)
+                    {
+                        DrawMessageBoxText(g);
+                    }
+                }
+                else if (CurrentPrimaryState == PrimaryState.GameOverCommitted)
+                {
+                    g.DrawImageUnscaled(gameOverScreen, 0, 0);
+
+                    if (messageBoxString.Length > 0)
+                    {
+                        DrawMessageBoxText(g);
+                    }
+                }
+                else if (CurrentPrimaryState == PrimaryState.YouWinPending)
+                {
+                    g.Clear(Color.Black);
+
+                    // Draw the HUD
+                    g.DrawImageUnscaled(uiflavor, 0, 0);
+
+                    if (messageBoxString.Length > 0)
+                    {
+                        DrawMessageBoxText(g);
+                    }
+                }
+                else if (CurrentPrimaryState == PrimaryState.YouWinCommitted)
+                {
+                    g.DrawImageUnscaled(youWinScreen, 0, 0);
+
+                    if (messageBoxString.Length > 0)
+                    {
+                        DrawMessageBoxText(g);
+                    }
+                }
+                else if (CurrentPrimaryState == PrimaryState.Gameplay)
+                {
+                    g.DrawImageUnscaled(reference, 0, 0, 320, 240);
+
+                    DrawGameplay(g);
+
+                    // Draw the HUD
+                    g.DrawImageUnscaled(uiflavor, 0, 0);
+
+                    DrawCurrentlyWornMaskUI(g);
+
+                    // Draw the player health bar
+                    {
+                        int healthBarLength = hydra.HP;
+                        if (healthBarLength > 39)
+                        {
+                            healthBarLength = 39;
+                        }
+                        g.FillRectangle(whiteBrush, 268, 193, healthBarLength, 4); // Fills 0..39
+                    }
+
+                    // Draw the enemy health bar
+                    if (enemyHealth > 0)
+                    {
+                        int healthBarLength = enemyHealth;
+                        if (healthBarLength > 39)
+                        {
+                            healthBarLength = 39;
+                        }
+                        g.FillRectangle(whiteBrush, 268, 202, healthBarLength, 4); // Fills 0..39
+                    }
+
+                    if (messageBoxString.Length > 0)
+                    {
+                        DrawMessageBoxText(g);
+                    }
+                }
             }
 
             // Draw native to final target with 3x scaling
@@ -503,40 +685,6 @@ namespace mask
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-
-            bool systemCursorNext = false;
-
-            if (e.X > 320 * scaleFactor)
-            {
-                systemCursorNext = true;
-            }
-
-            if (e.Y > 240 * scaleFactor)
-            {
-                systemCursorNext = true;
-            }
-
-            if (!systemCursorNext)
-            {
-                mouseX = e.X / scaleFactor;
-                mouseY = e.Y / scaleFactor;
-            }
-
-            if (systemCursor != systemCursorNext)
-            {
-                systemCursor = systemCursorNext;
-
-                if (systemCursor)
-                {
-                    Cursor.Show();
-                }
-                else
-                {
-                    Cursor.Hide();
-                }
-            }
-
-            this.Invalidate();
         }
 
         bool CanPass(int forecastedPositionX, int forecastedPositionY, out Mob mobToBeFightingWith)
@@ -570,35 +718,129 @@ namespace mask
             return true;
         }
 
+        private void InitializeGameplay()
+        {
+            // Transition to gameplay
+            CurrentPrimaryState = PrimaryState.Gameplay;
+
+            textframe = 0;
+            messageBoxString = "Monty must escape!";
+            hydra.HP = 10;
+            hydra.CurrentlyWornMask = null;
+        }
+
+        void ShamefulReset_HACK()
+        {
+            // TODO: Remove this :(
+            // TODO: Need to make this integrate better with GameState :(
+            GameState.theGame.Items.AddRange(removedMasksOnGround);
+            removedMasksOnGround.Clear();
+            hydra.X = 1;
+            hydra.Y = 2;
+            floor.DespawnLadder();
+            for (int i = 0; i < killedMobs.Count; ++i)
+            {
+                killedMobs[i].Health = 2;
+            }
+            GameState.theGame.Mobs.AddRange(killedMobs);
+            killedMobs.Clear();
+
+            floor.DespawnExit();
+
+            if (spawnedPartyHat != null)
+            {
+                GameState.theGame.Items.Remove(spawnedPartyHat);
+                spawnedPartyHat = null;
+            }
+
+            InitializeGameplay();
+        }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
-            if (e.KeyCode == Keys.D)
+
+
+            if (CurrentPrimaryState == PrimaryState.SplashScreen)
             {
-                if (CanPass(hydra.X + 1, hydra.Y, out mobHydraIsFighting))
+                if (e.KeyCode == Keys.Enter)
                 {
-                    isWalkingRight = true;
+                    InitializeGameplay();
                 }
             }
-            else if (e.KeyCode == Keys.A)
+            else if (CurrentPrimaryState == PrimaryState.GameOverPending)
             {
-                if (CanPass(hydra.X - 1, hydra.Y, out mobHydraIsFighting))
+                bool pressedEligibleKey = e.KeyCode == Keys.Enter ||
+                    e.KeyCode == Keys.W ||
+                    e.KeyCode == Keys.A ||
+                    e.KeyCode == Keys.S ||
+                    e.KeyCode == Keys.D;
+
+                if (pressedEligibleKey && textframe == messageBoxString.Length)
                 {
-                    isWalkingLeft = true;
+                    CurrentPrimaryState = PrimaryState.GameOverCommitted;
+                    textframe = 0;
+                    messageBoxString = "Press enter to try again.";
                 }
             }
-            else if (e.KeyCode == Keys.W)
+            else if (CurrentPrimaryState == PrimaryState.GameOverCommitted)
             {
-                if (CanPass(hydra.X, hydra.Y - 1, out mobHydraIsFighting))
+                if (e.KeyCode == Keys.Enter && textframe == messageBoxString.Length)
                 {
-                    isWalkingUp = true;
+                    ShamefulReset_HACK();
                 }
             }
-            else if (e.KeyCode == Keys.S)
+            else if (CurrentPrimaryState == PrimaryState.YouWinPending)
             {
-                if (CanPass(hydra.X, hydra.Y + 1, out mobHydraIsFighting))
+                bool pressedEligibleKey = e.KeyCode == Keys.Enter ||
+                    e.KeyCode == Keys.W ||
+                    e.KeyCode == Keys.A ||
+                    e.KeyCode == Keys.S ||
+                    e.KeyCode == Keys.D;
+
+                if (pressedEligibleKey && textframe == messageBoxString.Length)
                 {
-                    isWalkingDown = true;
+                    CurrentPrimaryState = PrimaryState.YouWinCommitted;
+                    textframe = 0;
+                    messageBoxString = "Press enter to play again.";
+                }
+            }
+            else if (CurrentPrimaryState == PrimaryState.YouWinCommitted)
+            {
+                if (e.KeyCode == Keys.Enter && textframe == messageBoxString.Length)
+                {
+                    ShamefulReset_HACK();
+                }
+            }
+            else if (CurrentPrimaryState == PrimaryState.Gameplay)
+            {
+                if (e.KeyCode == Keys.D)
+                {
+                    if (CanPass(hydra.X + 1, hydra.Y, out mobHydraIsFighting))
+                    {
+                        isWalkingRight = true;
+                    }
+                }
+                else if (e.KeyCode == Keys.A)
+                {
+                    if (CanPass(hydra.X - 1, hydra.Y, out mobHydraIsFighting))
+                    {
+                        isWalkingLeft = true;
+                    }
+                }
+                else if (e.KeyCode == Keys.W)
+                {
+                    if (CanPass(hydra.X, hydra.Y - 1, out mobHydraIsFighting))
+                    {
+                        isWalkingUp = true;
+                    }
+                }
+                else if (e.KeyCode == Keys.S)
+                {
+                    if (CanPass(hydra.X, hydra.Y + 1, out mobHydraIsFighting))
+                    {
+                        isWalkingDown = true;
+                    }
                 }
             }
         }

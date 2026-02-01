@@ -13,7 +13,8 @@ namespace mask
         TrapVision,
         Life,
         Construction,
-        Clown
+        Clown,
+        Party
     }
     public enum Style : int { FullMask, PartyHat, ColoredGlasses }
 
@@ -111,7 +112,6 @@ namespace mask
             : base(m.type, m.Level, m.X, m.Y, m.Health, m.Attack, m.Def) 
         {
             heads.Add(new Head(null));
-            HP = 10;
         }
         public IEnumerable<Mask> EquippedMasks
         {

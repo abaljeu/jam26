@@ -16,7 +16,27 @@ namespace mask
             tiles[3, 6] = new Tile(ETile.Ladder);
             tiles[3, 7] = new Tile(ETile.Ladder);
             tiles[3, 8] = new Tile(ETile.Ladder);
-        }
+    }
+
+    public void DespawnLadder()
+    {
+            tiles[3, 5] = new Tile(ETile.None);
+            tiles[3, 6] = new Tile(ETile.None);
+            tiles[3, 7] = new Tile(ETile.None);
+            tiles[3, 8] = new Tile(ETile.None);
+    }
+
+    public void SpawnExit()
+    {
+        tiles[12, 0] = new Tile(ETile.Bridge);
+        tiles[12, 1] = new Tile(ETile.Bridge);
+    }
+
+    public void DespawnExit()
+    {
+        tiles[12, 0] = new Tile(ETile.Rock);
+        tiles[12, 1] = new Tile(ETile.Rock);
+    }
 
     public Tile[,] tiles = new Tile[MapX, MapY];
 
