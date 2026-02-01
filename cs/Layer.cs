@@ -9,6 +9,15 @@ namespace mask
     public Layer(Level level) : this(level.X, level.Y)
     {
     }
+
+    public void SpawnLadder()
+    {
+            tiles[3, 5] = new Tile(ETile.Ladder);
+            tiles[3, 6] = new Tile(ETile.Ladder);
+            tiles[3, 7] = new Tile(ETile.Ladder);
+            tiles[3, 8] = new Tile(ETile.Ladder);
+        }
+
     public Tile[,] tiles = new Tile[MapX, MapY];
 
         internal void ConsoleWrite()

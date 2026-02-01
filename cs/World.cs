@@ -68,12 +68,16 @@
 
       InitialMobs.Add(GameState.theGame.hydra);
 
-            for (int i = 10; i< 16; i+=2)
-                for (int j=8; j<15; j+=2)
-                    InitialMobs.Add(new Mob(EMob.Slime, 1,/*x,y*/ i,j, 1, 1, 1));
+        for (int i = 10; i< 16; i+=2)
+            for (int j=2; j<8; j+=2)
+                InitialMobs.Add(new Mob(EMob.Slime, 1,/*x,y*/ i,j, 1, 1, 1));
 
-            InitialItems.Add(
-                new MaskOnGround(new Mask(ETile.Bridge, MaskFeature.None), 1, 1, 1));
+        // Populate initial items here
+        InitialItems.Add(
+            new MaskOnGround(new Mask(ETile.Bridge, EFeature.Construction), 1, 1, 1));
+            
+        InitialItems.Add(
+            new MaskOnGround(new Mask(ETile.Bridge, EFeature.Clown), 1, 9, 9));
     }
   }
 

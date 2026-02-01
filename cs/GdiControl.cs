@@ -25,7 +25,6 @@ namespace mask
         bool gameplayAssetsLoaded;
 
         bool systemCursor;
-
         
         int playerAnimationFrame = 0;
         int playerXWalkFrame = 0;
@@ -38,6 +37,7 @@ namespace mask
         bool isWalkingLeft;
         bool isWalkingUp;
         bool isWalkingDown;
+        Mob mobHydraIsFighting;
 
         int scaleFactor = 3;
         int mouseX, mouseY;
@@ -64,7 +64,7 @@ namespace mask
 
         }
 
-        const int t = 16;/// tile size
+        const int t = 16; // tile size
 
         void DrawGameplay(Graphics g)
         {
@@ -126,7 +126,7 @@ namespace mask
                 case EMob.None:
                     return 0;
                 case EMob.Hydra:
-                    return 4 + playerAnimationFrame / 20;
+                    return 10;
                 case EMob.Slime:
                     return 6;
                 case EMob.Skeleton:
@@ -137,26 +137,47 @@ namespace mask
                     return 0;
             }
         }
-        int itemFrame()
+        int maskOnGroundItemFrame(EFeature e)
         {
-            return 7; // mask item
+            switch (e)
+            {
+                case EFeature.Clown: return 7;
+                case EFeature.Construction: return 8;
+                default:
+                    return 0;
+            }
         }
+
+        int maskWornFrame(EFeature e)
+        {
+            switch (e)
+            {
+                case EFeature.Clown: return 10;
+                case EFeature.Construction: return 11;
+                default:
+                    return 0;
+            }
+        }
+            
         void DrawMobs(Graphics g)
         {
             foreach (var mob in GameState.theGame.LayerMobs())
             {
                 Rectangle destRect = new Rectangle(mob.X * (t + 1), mob.Y * (t + 1), t, t);
 
-                Rectangle sourceRect = new Rectangle((mobFrame(mob.type)) * t, 1 * t, t, t);
+                Rectangle sourceRect = new Rectangle((mobFrame(mob.type)) * t, (1 + playerAnimationFrame / 20) * t, t, t);
+
                 g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
 
                 // Draw a mask on the mob as needed
                 if (mob is Hydra)
                 {
-                    if (hydra.IsWearingMask)
+                    if (hydra.CurrentlyWornMask != null)
                     {
+                        int currentMaskFrame = maskWornFrame(hydra.CurrentlyWornMask.Value);
                         Rectangle sourceRect2 = sourceRect;
-                        sourceRect2.Y += t;
+                        sourceRect2.X = currentMaskFrame * t;
+                        sourceRect2.Y += t * 2;
                         g.DrawImage(tileset, destRect, sourceRect2, GraphicsUnit.Pixel);
 
                     }
@@ -167,13 +188,34 @@ namespace mask
         {
             foreach (var item in GameState.theGame.Items)
             {
-                int xTile = hydra.X;
-                int yTile = hydra.Y;
-                Rectangle destRect = new Rectangle(item.X * (t + 1), item.Y * (t + 1), t, t);
+                if (item is MaskOnGround)
+                {
+                    MaskOnGround m = item;
+                    EFeature eff = m.mask.WhichEffect;
+                    int currentMaskFrame = maskOnGroundItemFrame(eff);
 
-                Rectangle sourceRect = new Rectangle(itemFrame() * t, 0 * t, t, t);
-                g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+                    Rectangle destRect = new Rectangle(item.X * (t + 1), item.Y * (t + 1), t, t);
+
+                    Rectangle sourceRect = new Rectangle(currentMaskFrame * t, 0 * t, t, t);
+                    g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+                }
             }
+        }
+
+        void DrawCurrentlyWornMaskUI(Graphics g)
+        {
+            if (hydra.CurrentlyWornMask == null)
+                return;
+
+            int uiX = 16;
+            int uiY = 198;
+            Rectangle destRect = new Rectangle(uiX, uiY, t, t);
+
+            int currentMaskFrame = maskOnGroundItemFrame(hydra.CurrentlyWornMask.Value);
+            Rectangle sourceRect = new Rectangle(currentMaskFrame * t, 0, t, t);
+
+            g.DrawImage(tileset, destRect, sourceRect, GraphicsUnit.Pixel);
+
         }
 
         void DrawMessageBoxText(Graphics g)
@@ -338,6 +380,35 @@ namespace mask
                     moved = true;
                 }
             }
+
+            if (mobHydraIsFighting != null)
+            {
+                // Check if wearing the clown mask
+                if (hydra.CurrentlyWornMask == EFeature.Clown)
+                {
+                    textframe = 0;
+                    messageBoxString = "Did 1 damage using\nClown Mask.";
+                }
+                else
+                {
+                    // Lose the fight
+                    hydra.HP--;
+                    if (hydra.HP <= 0)
+                    {
+                        textframe = 0;
+                        messageBoxString = "Monty ran out of\nstrength.";
+                        // Game over here.
+                    }
+                    else
+                    {
+                        textframe = 0;
+                        messageBoxString = "Monty took 1 damage.";
+                    }
+                }
+
+                mobHydraIsFighting = null;
+            }
+
             if (messageBoxString.Length > 0 && textframe < messageBoxString.Length)
             {
                 textframe++;
@@ -352,13 +423,24 @@ namespace mask
                     if (hydra.X == item.X && hydra.Y == item.Y)
                     {
                         // Put on the mask
-                        hydra.IsWearingMask = true;
+                        hydra.CurrentlyWornMask = item.mask.WhichEffect;
 
                         // Take the mask off the floor
                         GameState.theGame.Items.RemoveAt(i);
 
-                        textframe = 0;
-                        messageBoxString = "Monty put on Clown\nMask.";
+                        // Apply the effect of the item and report a message
+
+                        if (hydra.CurrentlyWornMask == EFeature.Construction)
+                        {
+                            textframe = 0;
+                            messageBoxString = "Monty put on\nConstruction Hat.";
+                            floor.SpawnLadder();
+                        }
+                        else if (hydra.CurrentlyWornMask == EFeature.Clown)
+                        {
+                            textframe = 0;
+                            messageBoxString = "Monty put on Clown\nMask.";
+                        }
 
                         break;
                     }
@@ -394,8 +476,10 @@ namespace mask
                 // Draw the HUD
                 g.DrawImageUnscaled(uiflavor, 0, 0);
 
+                DrawCurrentlyWornMaskUI(g);
+
                 // Draw the health bar
-                g.FillRectangle(whiteBrush, 268, 193, 5, 4); // Fills 0..39
+                g.FillRectangle(whiteBrush, 268, 193, hydra.HP, 4); // Fills 0..39
 
                 // Draw the XP bar
                 g.FillRectangle(whiteBrush, 268, 202, 20, 4); // Fills 0..39
@@ -455,24 +539,67 @@ namespace mask
             this.Invalidate();
         }
 
+        bool CanPass(int forecastedPositionX, int forecastedPositionY, out Mob mobToBeFightingWith)
+        {
+            mobToBeFightingWith = null;
+
+            if (forecastedPositionX < 0) return false;
+            if (forecastedPositionY < 0) return false;
+
+            if (forecastedPositionX >= floor.MapX) return false;
+            if (forecastedPositionY >= floor.MapY) return false;
+
+            if (forecastedPositionX >= 18) return false; // TODO: the map should actually be smaller.
+            if (forecastedPositionY >= 18) return false;
+
+            Tile thisTile = floor.tiles[forecastedPositionX, forecastedPositionY];
+            ETile tileType = thisTile.tileType;
+            if (tileType == ETile.None)
+                return false;
+
+            // Check if there's a mob here
+            foreach (var mob in GameState.theGame.LayerMobs())
+            {
+                if (mob.X == forecastedPositionX && mob.Y == forecastedPositionY && !(mob is Hydra))
+                {
+                    mobToBeFightingWith = mob;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
             if (e.KeyCode == Keys.D)
             {
-                isWalkingRight = true;
+                if (CanPass(hydra.X + 1, hydra.Y, out mobHydraIsFighting))
+                {
+                    isWalkingRight = true;
+                }
             }
             else if (e.KeyCode == Keys.A)
             {
-                isWalkingLeft = true;
+                if (CanPass(hydra.X - 1, hydra.Y, out mobHydraIsFighting))
+                {
+                    isWalkingLeft = true;
+                }
             }
             else if (e.KeyCode == Keys.W)
             {
-                isWalkingUp = true;
+                if (CanPass(hydra.X, hydra.Y - 1, out mobHydraIsFighting))
+                {
+                    isWalkingUp = true;
+                }
             }
             else if (e.KeyCode == Keys.S)
             {
-                isWalkingDown = true;
+                if (CanPass(hydra.X, hydra.Y + 1, out mobHydraIsFighting))
+                {
+                    isWalkingDown = true;
+                }
             }
         }
 

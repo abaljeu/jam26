@@ -11,25 +11,31 @@ namespace mask
         None = 0,
         SuppressMask,
         TrapVision,
-        Life
+        Life,
+        Construction,
+        Clown
     }
     public enum Style : int { FullMask, PartyHat, ColoredGlasses }
-    public record MaskFeature(EFeature e)
-    {
-        public static MaskFeature None { get => new(EFeature.None); }
-    }
-    public record LifeGainFeature(int amount) : MaskFeature(EFeature.Life);
+
     public record MaskOnGround(Mask mask, int Level, int X, int Y)
     {
     }
-    public record Mask(
-        ETile tileToggle, MaskFeature m)
+    public class Mask
     {
-        Style style = Rand.GetRandomEnumValue<Style>();
-        Color color = Color.FromArgb(
-          Rand.Value(0, 255),
-          Rand.Value(0, 255),
-          Rand.Value(0, 255));
+        public EFeature WhichEffect;
+        public ETile tileToggle;
+
+        public Mask(ETile t, EFeature m)
+        {
+            Style style = Rand.GetRandomEnumValue<Style>();
+            Color color = Color.FromArgb(
+              Rand.Value(0, 255),
+              Rand.Value(0, 255),
+              Rand.Value(0, 255));
+
+            WhichEffect = m;
+            tileToggle = t;
+        }
     }
 
     public enum ETile : int
@@ -105,6 +111,7 @@ namespace mask
             : base(m.type, m.Level, m.X, m.Y, m.Health, m.Attack, m.Def) 
         {
             heads.Add(new Head(null));
+            HP = 10;
         }
         public IEnumerable<Mask> EquippedMasks
         {
@@ -118,7 +125,8 @@ namespace mask
             }
         }
 
-        public bool IsWearingMask;
+        public int HP;
+        public EFeature? CurrentlyWornMask;
     }
 
     public record Item(int Level, int X, int Y, Mask? mask);
